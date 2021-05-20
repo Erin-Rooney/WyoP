@@ -141,15 +141,52 @@ write.csv(enzymes_nocon, "enzymes_percbio.csv", row.names = FALSE)
 #relabund processing (adding and then dividing by total)-------------------
 
 p_relabund_longer_se= 
-  incub_dat2 %>% 
+  incub_dat2 %>%
+  na.omit() %>% 
   select(time, ctrt, ftrt, pbic_percbio, amac_percbio, unavp_percbio, porg_percbio) %>% 
   #is this where I need to summarize? pivot longer then pivot wider again?
   pivot_longer(-c(time, ctrt, ftrt), 
                names_to = 'phosphorus_pool', values_to = 'relabund') %>% 
   group_by(ctrt, ftrt, time, phosphorus_pool) %>%
-  filter(ctrt != "Control") %>% 
+  filter(ctrt != "Control" & time != "Baseline") %>% 
   dplyr::summarise(relabundance = round(mean(relabund), 2),
                    se = round(sd(relabund)/sqrt(n()),2))
+
+
+p_relabund_longer= 
+  incub_dat2 %>%
+  na.omit() %>% 
+  select(time, ctrt, ftrt, pbic_percbio, amac_percbio, unavp_percbio, porg_percbio) %>% 
+  #is this where I need to summarize? pivot longer then pivot wider again?
+  # pivot_longer(-c(time, ctrt, ftrt), 
+  #              names_to = 'phosphorus_pool', values_to = 'relabund') %>% 
+  # group_by(ctrt, ftrt, time, phosphorus_pool) %>%
+  filter(ctrt != "Control" & time != "Baseline") %>% 
+  # dplyr::summarise(relabundance = round(mean(relabund), 2),
+  #                  se = round(sd(relabund)/sqrt(n()),2)) %>% 
+  rename("Available P" = "pbic_percbio",
+         "Reserve P" = 'amac_percbio',
+         "Organic P" = 'porg_percbio',
+         "Fixed P" = 'unavp_percbio')
+
+p_relabund_longer_figure= 
+  incub_dat2 %>%
+  na.omit() %>% 
+  select(time, ctrt, ftrt, pbic_percbio, amac_percbio, unavp_percbio, porg_percbio) %>% 
+  #is this where I need to summarize? pivot longer then pivot wider again?
+  # pivot_longer(-c(time, ctrt, ftrt), 
+  #              names_to = 'phosphorus_pool', values_to = 'relabund') %>% 
+  # group_by(ctrt, ftrt, time, phosphorus_pool) %>%
+  filter(ctrt != "Control" & time != "Baseline") %>% 
+  # dplyr::summarise(relabundance = round(mean(relabund), 2),
+  #                  se = round(sd(relabund)/sqrt(n()),2)) %>% 
+  rename("Available P" = "pbic_percbio",
+         "Reserve P" = 'amac_percbio',
+         "Organic P" = 'porg_percbio',
+         "Fixed P" = 'unavp_percbio') %>% 
+  pivot_longer(-c(time, ctrt, ftrt), names_to = 'phosphorus_pool', values_to = 'abundance') %>% 
+  mutate(phosphorus_pool = factor(phosphorus_pool, levels = c('Available P', "Reserve P", "Organic P", "Fixed P"))) %>% 
+  force()
 
 p_relabund_wider=
   p_relabund_longer_se %>% 
@@ -161,6 +198,43 @@ p_relabund_wider=
                 rela_unavp = (unavp_percbio/rela_total),
                 rela_porg = (porg_percbio/rela_total)
   ) 
+
+############
+
+#ggplot (Oat only, p pools across time x ftrt)
+
+p_relabund_longer_figure %>%
+  filter(ctrt == "Oat") %>% 
+  ggplot()+
+  geom_boxplot(aes(x=phosphorus_pool, y=abundance, fill = time), alpha = 0.7)+
+  labs(y = "phosphorus concentration/ gram cc biomass", x = "")+
+  facet_grid(ftrt~ctrt)+
+  ylim(0,12)+
+  scale_fill_manual(values = wes_palette('GrandBudapest1',3))+
+  theme_er()
+
+# all ctrt line plot across time, ppools, Na.omit causing problem maybe
+
+p_relabund_longer_se %>%
+  #filter(ctrt == "Oat") %>% 
+  ggplot()+
+  geom_line(aes(x=time, y=relabundance, color = phosphorus_pool, group = phosphorus_pool))+
+  geom_point(aes(x=time, y=relabundance, color = phosphorus_pool))+
+  labs(y = "phosphorus concentration/ gram cc biomass", x = "")+
+  facet_grid(ftrt~ctrt)+
+  ylim(0,12)+
+  scale_fill_manual(values = wes_palette('GrandBudapest1',3))+
+  theme_er()
+
+####################
+#stats--------------
+
+
+
+
+
+#############
+#trying to do relabundances, really not working
 
 #relabund pivot longer
 p_relabund2 = 
@@ -199,6 +273,21 @@ p_relabund3 %>%
   ylim(0,1)+
   theme(legend.position = 'bottom')+
   NULL
+
+p_relabund3 %>% 
+  #filter(ctrt != "Control") %>% 
+  ggplot(aes(x = time, y = relabund))+
+  geom_bar(aes(fill = phosphorus_pool), stat = "identity")+
+  facet_grid(ftrt ~ ctrt)+
+  labs(x = "Time", 
+       y = "Relative Abundance")+
+  scale_fill_manual(values = (wes_palette("Moonrise3",4)))+
+  #geom_text(data = label, aes(x = Trtmt, y = y, label = label), size = 8, color = "white")+
+  theme_er()+
+  ylim(0,1)+
+  theme(legend.position = 'bottom')+
+  NULL
+
 
 
 #stats (aov to lme to hsd to failure) Started with Pbic by ctrt with time as a randomizing factor
