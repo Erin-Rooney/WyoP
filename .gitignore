@@ -16,6 +16,7 @@
 .Rproj.user/0A5359D9/saved_source_markers
 .Rproj.user/0A5359D9/rmd-outputs
 *.pper
+.Rproj.user
 .gitattributes
 .Rhistory
 .Rproj.user/0A5359D9/persistent-state
