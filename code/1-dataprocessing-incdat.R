@@ -46,10 +46,21 @@ incub_dat_enzymeslonger %>%
   
 #relabund processing (adding and then dividing by total)-------------------
 
-p_relabund = 
+p_relabund_longer_se= 
   incub_dat2 %>% 
   select(time, ctrt, ftrt, pbic_percbio, amac_percbio, unavp_percbio, porg_percbio) %>% 
   #is this where I need to summarize? pivot longer then pivot wider again?
+  pivot_longer(-c(time, ctrt, ftrt), 
+               names_to = 'phosphorus_pool', values_to = 'relabund') %>% 
+  group_by(ctrt, ftrt, time, phosphorus_pool) %>%
+  filter(ctrt != "Control") %>% 
+  dplyr::summarise(relabundance = round(mean(relabund), 2),
+                   se = round(sd(relabund)/sqrt(n()),2))
+
+p_relabund_wider=
+  p_relabund_longer_se %>% 
+  select(ctrt, ftrt, time, phosphorus_pool, relabundance) %>% 
+  pivot_wider(names_from = "phosphorus_pool", values_from = ("relabundance")) %>% 
   dplyr::mutate(rela_total = (pbic_percbio + amac_percbio + unavp_percbio + porg_percbio),
                 rela_pbic = (pbic_percbio/rela_total),
                 rela_amac = (amac_percbio/rela_total),
@@ -59,7 +70,7 @@ p_relabund =
 
 #relabund pivot longer
 p_relabund2 = 
-  p_relabund %>% 
+  p_relabund_wider %>% 
   select(time, ctrt, ftrt, rela_pbic, rela_amac, rela_unavp, rela_porg) %>% 
   pivot_longer(-c(time, ctrt, ftrt), 
                names_to = 'phosphorus_pool', values_to = 'relabund') 
@@ -67,11 +78,11 @@ p_relabund2 =
 #trying to make everything add up to 1 so I can make a relabundance figure. Did not work.
 p_relabund3 =
   p_relabund2 %>%
-  group_by(ctrt, ftrt, time, phosphorus_pool) %>% 
-   dplyr::summarise(relabundance = round(mean(relabund), 2),
-                    se = round(sd(relabund)/sqrt(n()),2)) %>% 
-  ungroup() %>% 
-  select(time, ctrt, ftrt, phosphorus_pool, relabundance, se) %>% 
+  # group_by(ctrt, ftrt, time, phosphorus_pool) %>% 
+  #  dplyr::summarise(relabundance = round(mean(relabund), 2),
+  #                   se = round(sd(relabund)/sqrt(n()),2)) %>% 
+  # ungroup() %>% 
+  #select(time, ctrt, ftrt, phosphorus_pool, relabundance, se) %>% 
   mutate(phosphorus_pool = recode(phosphorus_pool, "rela_pbic" = "Available P",
                 'rela_amac' = "Reserve P",
                 'rela_unavp' = "Fixed P",
@@ -83,7 +94,7 @@ p_relabund3 =
   
 p_relabund3 %>% 
   filter(ctrt != "Control") %>% 
-  ggplot(aes(x = time, y = relabundance))+
+  ggplot(aes(x = time, y = relabund))+
   geom_bar(aes(fill = phosphorus_pool), stat = "identity")+
   facet_grid(ftrt ~ ctrt)+
   labs(x = "Time", 
