@@ -49,6 +49,7 @@ incub_dat_enzymeslonger %>%
 p_relabund = 
   incub_dat2 %>% 
   select(time, ctrt, ftrt, pbic_percbio, amac_percbio, unavp_percbio, porg_percbio) %>% 
+  #is this where I need to summarize? pivot longer then pivot wider again?
   dplyr::mutate(rela_total = (pbic_percbio + amac_percbio + unavp_percbio + porg_percbio),
                 rela_pbic = (pbic_percbio/rela_total),
                 rela_amac = (amac_percbio/rela_total),
@@ -87,7 +88,7 @@ p_relabund3 %>%
   facet_grid(ftrt ~ ctrt)+
   labs(x = "Time", 
        y = "Relative Abundance")+
-  scale_fill_manual(values = rev(pnw_palette("Shuksan2",4)))+
+  scale_fill_manual(values = (wes_palette("Moonrise3",4)))+
   #geom_text(data = label, aes(x = Trtmt, y = y, label = label), size = 8, color = "white")+
   theme_er()+
   ylim(0,1)+
