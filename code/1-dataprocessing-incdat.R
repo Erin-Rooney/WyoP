@@ -32,18 +32,112 @@ incub_dat2 =
 incub_dat_enzymeslonger =
   incub_dat2 %>% 
   select(time, ctrt, ftrt, phos_percbio, bg_percbio, nag_percbio, ag_percbio, lap_percbio, abts_percbio) %>% 
-  pivot_longer(-c(time, ctrt, ftrt), names_to = 'enzymes_type', values_to = 'enzymes_percbio') 
+  pivot_longer(-c(time, ctrt, ftrt), names_to = 'enzymes_type', values_to = 'enzymes_percbio') %>% 
+  filter(ctrt != "Control")
 
 #ggplot-----------------
 
 incub_dat_enzymeslonger %>% 
-  filter(enzymes_type == "phos_percbio", ctrt != "Control") %>% 
+  filter(enzymes_type == "phos_percbio" & time != "Baseline") %>% 
   ggplot() +
   geom_boxplot(aes(x = ctrt, y = enzymes_percbio, fill = time), alpha = 0.7) +
-  labs(x = "", y = "Phosphotase Enzyme concentrations/g ccbiomass")+
-  scale_fill_manual(values = wes_palette('GrandBudapest2',4))+
+  labs(x = "", y = "Phosphatase Enzyme concentrations/g ccbiomass")+
+  scale_fill_manual(values = wes_palette('GrandBudapest1',3))+
+  facet_grid(ftrt~.)+
   theme_er()
   
+
+#stats-------------------
+
+
+enzymes_nocon =
+  incub_dat_enzymeslonger %>% 
+  group_by(ctrt, ftrt, time, enzymes_type) %>%
+  dplyr::summarise(abundance = round(mean(enzymes_percbio), 2),
+                   se = round(sd(enzymes_percbio)/sqrt(n()),2)) %>% 
+  mutate(enzymes_type = recode(enzymes_type, "phos_percbio" = "phos",
+                                'bg_percbio' = "bg",
+                                'nag_percbio' = "nag",
+                                'ag_percbio' = "ag",
+                               'lap_percbio' = "lap",
+                               'abts_percbio' = "abts")) %>% 
+  filter(time != "Baseline") %>% 
+  mutate(summary = paste(abundance, "\u00b1", se)) %>% 
+  dplyr::select(-abundance, -se) %>% 
+  pivot_wider(names_from = "enzymes_type", values_from = "summary")
+
+
+enzymes_nocon_forstats =
+  incub_dat_enzymeslonger %>% 
+  # group_by(ctrt, ftrt, time, enzymes_type) %>%
+  # dplyr::summarise(abundance = round(mean(enzymes_percbio), 2),
+  #                  se = round(sd(enzymes_percbio)/sqrt(n()),2)) %>% 
+  mutate(enzymes_type = recode(enzymes_type, "phos_percbio" = "phos",
+                               'bg_percbio' = "bg",
+                               'nag_percbio' = "nag",
+                               'ag_percbio' = "ag",
+                               'lap_percbio' = "lap",
+                               'abts_percbio' = "abts")) %>% 
+  filter(time != "Baseline") %>% 
+  # mutate(summary = paste(abundance, "\u00b1", se)) %>% 
+  # dplyr::select(-abundance, -se) %>% 
+  #pivot_wider(names_from = "enzymes_type", values_from = "enzymes_percbio") %>% 
+  force()
+
+phos_compost = 
+  enzymes_nocon_forstats %>% 
+  filter(enzymes_type == "phos" & ftrt == "Compost")
+
+phos_control = 
+  enzymes_nocon_forstats %>% 
+  filter(enzymes_type == "phos" & ftrt == "Control")
+
+phoscomp.aov <- aov(enzymes_percbio ~ ctrt, data = phos_compost) 
+phoscont.aov <- aov(enzymes_percbio ~ ctrt, data = phos_control) 
+
+  
+summary.aov(phoscomp.aov)
+summary.aov(phoscont.aov)
+
+
+l_comp = lme(enzymes_percbio ~ ctrt, random = ~1|time, na.action = na.omit, data = phos_compost)
+summary(l_comp)
+print(l_comp)
+anova(l_comp)
+
+l_cont = lme(enzymes_percbio ~ ctrt, random = ~1|time, na.action = na.omit, data = phos_control)
+summary(l_cont)
+print(l_cont)
+anova(l_cont)
+
+#hsd
+
+phoscomp_hsd = HSD.test(phoscomp.aov, "ctrt")
+print(phoscomp_hsd)
+
+phoscont_hsd = HSD.test(phoscont.aov, "ctrt")
+print(phoscont_hsd)
+
+phoscomp_table = phoscomp_hsd %>%
+  phoscomp_hsd$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+  mutate(value = paste(enzymes_percbio, group),
+         # this will also add " NA" for the blank cells
+         # use str_remove to remove the string
+         #value = str_remove(value, " NA")
+  ) %>% 
+  dplyr::select(-summary, -label) %>% 
+  pivot_wider(names_from = "ctrt", values_from = "value") %>% 
+  force()
+
+phoscomp_hsd %>% knitr::kable() # prints a somewhat clean table in the console
+
+
+write.csv(enzymes_nocon, "enzymes_percbio.csv", row.names = FALSE)
+
+
+
 #relabund processing (adding and then dividing by total)-------------------
 
 p_relabund_longer_se= 
