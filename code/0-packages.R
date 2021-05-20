@@ -12,6 +12,7 @@ library(ggpmisc)
 library(ggpubr)
 install.packages("wesanderson")
 library(agricolae)
+library(nlme)
 library(wesanderson)
 theme_er <- function() {  # this for all the elements common across plots
   theme_bw() %+replace%
