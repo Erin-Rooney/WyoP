@@ -44,7 +44,7 @@ incub_dat_enzymeslonger %>%
   scale_fill_manual(values = wes_palette('GrandBudapest2',4))+
   theme_er()
   
-#relabund-------------------
+#relabund processing (adding and then dividing by total)-------------------
 
 p_relabund = 
   incub_dat2 %>% 
@@ -56,12 +56,14 @@ p_relabund =
                 rela_porg = (porg_percbio/rela_total)
   ) 
 
+#relabund pivot longer
 p_relabund2 = 
   p_relabund %>% 
   select(time, ctrt, ftrt, rela_pbic, rela_amac, rela_unavp, rela_porg) %>% 
   pivot_longer(-c(time, ctrt, ftrt), 
                names_to = 'phosphorus_pool', values_to = 'relabund') 
 
+#trying to make everything add up to 1 so I can make a relabundance figure. Did not work.
 p_relabund3 =
   p_relabund2 %>%
   group_by(ctrt, ftrt, time, phosphorus_pool) %>% 
@@ -76,6 +78,7 @@ p_relabund3 =
   mutate(phosphorus_pool = factor(phosphorus_pool, levels = c('Available P', "Reserve P", "Fixed P", "Organic P")))
 
 
+#relabundance figure.
   
 p_relabund3 %>% 
   filter(ctrt != "Control") %>% 
@@ -92,17 +95,59 @@ p_relabund3 %>%
   NULL
 
 
+#stats (aov to lme to hsd to failure) Started with Pbic by ctrt with time as a randomizing factor
+
+p_noC =
+p_relabund %>% 
+  filter(ctrt != "Control" & ftrt == "CMPT")
 
 
+ctrt.aov <- aov(pbic_percbio ~ ctrt, data = p_noC) 
+summary.aov(ctrt.aov)
+
+l = lme(pbic_percbio ~ ctrt, random = ~1|time, na.action = na.omit, data = p_noC)
+summary(l)
+print(l)
+anova(l)
+
+#hsd
+
+ctrt_hsd = HSD.test(ctrt.aov, "ctrt")
+
+# trying to make it into a cohesive, exportable table. DId not work.
+
+hsd_table_pbicctrt = ctrt_hsd %>%
+  ctrt_hsd$groups %>% mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+  mutate(value = paste(pbic_percbio, group),
+         # this will also add " NA" for the blank cells
+         # use str_remove to remove the string
+         #value = str_remove(value, " NA")
+  ) %>% 
+  dplyr::select(-summary, -label) %>% 
+  pivot_wider(names_from = "slopepos", values_from = "value") %>% 
+  force()
 
 
-# 4. relabund summary table ----------------------------------------------------------------
+# %>% knitr::kable() # prints a somewhat clean table in the console
+
+#write.csv(relabund_table_with_hsd_covertype, "output/slopepos_hsdstats.csv", row.names = FALSE)
+
+#Relabund summary table ----------------------------------------------------------------
 ## step 1: prepare the data, combine mean +/- se
 ## unicode "\u00b1" gives plus-minus symbol
 
 relabund_table = 
-  fticr_water_relabund_summarized %>% 
-  #filter(cover_type == "Open") %>% 
+  p_relabund2 %>%
+  group_by(ctrt, ftrt, time, phosphorus_pool) %>% 
+  mutate(phosphorus_pool = recode(phosphorus_pool, "rela_pbic" = "Available P",
+                                  'rela_amac' = "Reserve P",
+                                  'rela_unavp' = "Fixed P",
+                                  'rela_porg' = "Organic P")) %>% 
+  mutate(phosphorus_pool = factor(phosphorus_pool, levels = c('Available P', "Reserve P", "Fixed P", "Organic P"))) %>% 
+  dplyr::summarise(relabundance = round(mean(relabund), 2),
+                   se = round(sd(relabund)/sqrt(n()),2)) %>% 
+  filter(ctrt != "Control") %>% 
   mutate(summary = paste(relabundance, "\u00b1", se)) %>% 
   dplyr::select(-relabundance, -se)
 
@@ -124,8 +169,8 @@ fit_aov_ppool = function(dat){
 }
 
 fit_hsd = function(dat){
-  a = aov(relabundance ~ ctrt * phosphorus_pools, data = p_relabund3)
-  h = HSD.test(a, "ctrt" * "phosphorus_pools")
+  a = aov(relabundance ~ ctrt, data = p_relabund3)
+  h = HSD.test(a, "ctrt")
   h$groups %>% mutate(ctrt = row.names(.)) %>% 
     rename(label = groups) %>%  
     dplyr::select(ctrt, label)
@@ -137,14 +182,13 @@ fit_hsd = function(dat){
 
 relabund_hsd_ppools = 
   p_relabund3 %>% 
-  filter(ctrt != "Control") %>% 
   group_by(ctrt) %>% 
   do(fit_hsd(.))
 
 ## step 4: combine the summarized values with the asterisks
-relabund_table_with_hsd_covertype = 
-  relabund_table_covertype %>% 
-  left_join(relabund_hsd_covertype) %>%
+relabund_table_ctrtppool = 
+  relabund_table %>% 
+  left_join(relabund_hsd_ppools) %>%
   # combine the values with the label notation
   mutate(value = paste(summary, label),
          # this will also add " NA" for the blank cells
@@ -152,7 +196,7 @@ relabund_table_with_hsd_covertype =
          #value = str_remove(value, " NA")
   ) %>% 
   dplyr::select(-summary, -label) %>% 
-  pivot_wider(names_from = "slopepos", values_from = "value") %>% 
+  pivot_wider(names_from = "phosphorus_pool", values_from = "value") %>% 
   force()
 
 
