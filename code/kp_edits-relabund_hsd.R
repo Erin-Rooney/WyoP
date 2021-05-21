@@ -51,6 +51,19 @@ p_relabund_summary =
                                   'porg_percbio' = "Organic P")) %>% 
   mutate(phosphorus_pool = factor(phosphorus_pool, levels = c('Available P', "Reserve P", "Organic P", "Fixed P")))
 
+p_relabund_summary_se = 
+  p_relabund_by_sample %>% 
+  group_by(ctrt, ftrt, time, phosphorus_pool) %>% 
+  dplyr::summarise(relabund_mean = round(mean(relabund), 2),
+                   se = round(sd(relabund)/sqrt(n()),2)) %>%
+  mutate(summary = paste(relabund_mean, "\u00b1", se)) %>% 
+  mutate(phosphorus_pool = recode(phosphorus_pool, "pbic_percbio" = "Available P",
+                                  'amac_percbio' = "Reserve P",
+                                  'unavp_percbio' = "Fixed P",
+                                  'porg_percbio' = "Organic P")) %>% 
+  mutate(phosphorus_pool = factor(phosphorus_pool, levels = c('Available P', "Reserve P", "Organic P", "Fixed P"))) %>% 
+  select(c(-relabund_mean, -se))
+
 
 p_relabund_summary %>% 
   filter(ctrt != "Control" & time != "Baseline") %>% 
@@ -267,7 +280,7 @@ hsd_ppools =
 
 
 p_relabund_summary_filter =
-  p_relabund_summary %>% 
+  p_relabund_summary_se %>% 
   filter(time == "T3" & ctrt != "Control")
 
 
@@ -278,15 +291,17 @@ hsd_ppools_byctrt_table =
                                   'unavp_percbio' = "Fixed P",
                                   'porg_percbio' = "Organic P")) %>% 
   left_join(p_relabund_summary_filter) %>% 
-  select(ftrt, ctrt, phosphorus_pool, relabund_mean, label) %>% 
-  mutate(value = paste(relabund_mean, label),
+  select(ftrt, ctrt, phosphorus_pool, summary, label) %>% 
+  mutate(value = paste(summary, label),
          # this will also add " NA" for the blank cells
          # use str_remove to remove the string
          #value = str_remove(value, " NA")
   ) %>% 
-  dplyr::select(-relabund_mean, -label) %>% 
+  dplyr::select(-summary, -label) %>% 
   pivot_wider(names_from = "phosphorus_pool", values_from = "value") %>% 
   force()
+
+write.csv(hsd_ppools_byctrt_table, "hsd_ppools_byctrt.csv", row.names = TRUE)
 
 
 ################
