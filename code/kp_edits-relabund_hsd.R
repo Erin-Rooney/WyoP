@@ -66,6 +66,28 @@ p_relabund_summary %>%
   theme(legend.position = 'bottom')+
   NULL
   
+#P pool plots
+
+p_plots =
+  p_relabund_by_sample %>% 
+  select(ctrt, ftrt, time, phosphorus_pool, abund) %>% 
+  mutate(phosphorus_pool = recode(phosphorus_pool, "pbic_percbio" = "Available P",
+                                  'amac_percbio' = "Reserve P",
+                                  'unavp_percbio' = "Fixed P",
+                                  'porg_percbio' = "Organic P")) %>% 
+  mutate(phosphorus_pool = factor(phosphorus_pool, levels = c('Available P', "Reserve P", "Organic P", "Fixed P")))
+
+
+p_plots %>% 
+  filter(time != "Baseline" & ctrt != "Control") %>% 
+  ggplot()+
+  geom_boxplot(aes(x = ctrt, y = abund, fill = ctrt), alpha = 0.6)+  
+  scale_fill_manual(values = (wes_palette("Zissou1",5)))+
+  facet_grid(ftrt~phosphorus_pool)+
+  labs(x = "", y = 'phosphorus concentration')+
+  theme_er()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
 
 # 3. PCA ---------------------------------------------------------------------
 ## you will need relative abundance data for PCA 
@@ -100,11 +122,11 @@ grp =
 pca = prcomp(num, scale. = T)
 
 ggbiplot(pca, obs.scale = 1, var.scale = 1,
-         groups = as.character(grp$ctrt), 
+         groups = as.character(grp$ftrt), 
          ellipse = TRUE, circle = FALSE, var.axes = TRUE) +
-  geom_point(size=3,stroke=1, aes(color = groups, shape = grp$ftrt))+
+  geom_point(size=3,stroke=1, aes(color = grp$ctrt, shape = groups))+
   labs(title = "By Covercrop")+
-  scale_color_manual(values = rev(PNWColors::pnw_palette("Bay", 5)))+
+  scale_color_manual(values = rev(PNWColors::pnw_palette("Bay", 7)))+
   theme_er()+
   NULL
 
@@ -124,8 +146,7 @@ ggbiplot(pca, obs.scale = 1, var.scale = 1,
 relabund_wide_sample =
   p_relabund_by_sample %>%
   ungroup %>% 
-  select(!abund, !total, !X, 
-         time, ctrt, ftrt, phosphorus_pool, relabund) %>% 
+  select(X, time, ctrt, ftrt, phosphorus_pool, relabund) %>% 
    mutate(phosphorus_pool = recode(phosphorus_pool, "pbic_percbio" = "Available P",
                                   'amac_percbio' = "Reserve P",
                                   'unavp_percbio' = "Fixed P",
@@ -137,15 +158,16 @@ relabund_wide_sample =
 
 
 library(vegan)
-# permanova_fticr_all = 
-adonis(relabund_wide %>% select(c(`Available P`, `Reserve P`, `Organic P`, `Fixed P`)) ~ 
+permanova_ftrt_ctrt_all = 
+adonis(relabund_wide_sample %>% select(c(`Available P`, `Reserve P`, `Organic P`, `Fixed P`)) ~ 
          (ctrt*ftrt*time), 
-       data = relabund_wide) 
+       data = relabund_wide_sample) 
 
 
 
+permatable = permanova_ftrt_ctrt_all$aov.tab
 
-
+write.csv(permatable, "permatable.csv", row.names = TRUE)
 
 
 
@@ -229,6 +251,61 @@ relabund_table_ftrtppool =
 ## setting up hsd function
 hsd_fit -- relabund ~ ctrt
 
+fit_hsd = function(dat){
+  a = aov(relabund ~ ctrt, data = dat)
+  h = HSD.test(a, "ctrt")
+  h$groups %>% mutate(ctrt = row.names(.)) %>% 
+    rename(label = groups) %>%  
+    dplyr::select(ctrt, label)
+}
+
+
+hsd_ppools = 
+  p_relabund_by_sample_t3 %>% 
+  group_by(ftrt, phosphorus_pool) %>% 
+  do(fit_hsd(.))
+
+
+p_relabund_summary_filter =
+  p_relabund_summary %>% 
+  filter(time == "T3" & ctrt != "Control")
+
+
+hsd_ppools_byctrt_table =
+  hsd_ppools %>% 
+  mutate(phosphorus_pool = recode(phosphorus_pool, "pbic_percbio" = "Available P",
+                                  'amac_percbio' = "Reserve P",
+                                  'unavp_percbio' = "Fixed P",
+                                  'porg_percbio' = "Organic P")) %>% 
+  left_join(p_relabund_summary_filter) %>% 
+  select(ftrt, ctrt, phosphorus_pool, relabund_mean, label) %>% 
+  mutate(value = paste(relabund_mean, label),
+         # this will also add " NA" for the blank cells
+         # use str_remove to remove the string
+         #value = str_remove(value, " NA")
+  ) %>% 
+  dplyr::select(-relabund_mean, -label) %>% 
+  pivot_wider(names_from = "phosphorus_pool", values_from = "value") %>% 
+  force()
+
+
+################
+
 relabund_bysample %>% 
   group_by(ftrt, phosphorus_pool) %>% 
   do(hsd_fit(.))
+
+relabund_table_ctrt = 
+  relabund_table %>% 
+  left_join(relabund_hsd_ppools) %>%
+  # combine the values with the label notation
+  mutate(value = paste(summary, label),
+         # this will also add " NA" for the blank cells
+         # use str_remove to remove the string
+         #value = str_remove(value, " NA")
+  ) %>% 
+  dplyr::select(-summary, -label) %>% 
+  pivot_wider(names_from = "phosphorus_pool", values_from = "value") %>% 
+  force()
+
+
