@@ -115,7 +115,7 @@ matrix2 <- rcorr(as.matrix(corr_data2))
 
 matrix2
 
-rcorr(matrix2, type = c("pearson"))
+##rcorr(matrix2, type = c("pearson"))
 
 
 # Extract the correlation coefficients
