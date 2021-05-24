@@ -17,6 +17,7 @@
 .Rproj.user/0A5359D9/rmd-outputs
 *.pper
 .Rproj.user
+.DS_Store
 .gitattributes
 .Rhistory
 .Rproj.user/0A5359D9/persistent-state
