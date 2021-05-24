@@ -302,7 +302,7 @@ fit_hsd = function(dat){
 
 abund_hsd_ftrt = 
   pall_ftrt_p_sample %>%
-  group_by(ctrt, time) %>% 
+  group_by(ctrt, time, phos_pool) %>% 
   do(fit_hsd(.))
 
 # combine with summarized table 
