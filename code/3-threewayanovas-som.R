@@ -270,7 +270,7 @@ pall_ftrt_p_summarized =
   select(ftrt, ctrt, time, pbic, amac, unavp, porg) %>% 
   na.omit() %>% 
   pivot_longer(-c(ftrt, ctrt, time), names_to = 'phos_pool', values_to = "abund") %>% 
-  group_by(ctrt, ftrt, time) %>% 
+  group_by(ctrt, ftrt, time, phos_pool) %>%
   dplyr::summarise(abundance = round(mean(abund), 2),
                    se = round(sd(abund)/sqrt(n()),2))
 
