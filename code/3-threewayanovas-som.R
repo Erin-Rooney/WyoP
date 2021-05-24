@@ -238,4 +238,29 @@ pbic6hsd
 
 #############
 
+#hsd summary table for available P (absolute) group by cover crop
 
+## step 1: prepare the data, combine mean +/- se
+## unicode "\u00b1" gives plus-minus symbol
+
+pall_ftrt_p_summarized =
+  pall2 %>% 
+  select(ftrt, ctrt, time, pbic, amac, unavp, porg) %>% 
+  na.omit() %>% 
+  pivot_longer(-c(ftrt, ctrt, time), names_to = 'phos_pool', values_to = "abund") %>% 
+  group_by(ctrt, ftrt, time) %>% 
+  dplyr::summarise(abundance = round(mean(abund), 2),
+                   se = round(sd(abund)/sqrt(n()),2))
+
+pall_ftrt_p_sample =
+  pall2 %>% 
+  select(ftrt, ctrt, time, pbic, amac, unavp, porg) %>% 
+  na.omit() %>% 
+  pivot_longer(-c(ftrt, ctrt, time), names_to = 'phos_pool', values_to = "abund")
+
+
+
+table_ftrt = 
+  pall_ftrt_p_summarized %>% 
+  mutate(summary = paste(abundance, "\u00b1", se)) %>% 
+  dplyr::select(-abundance, -se)
