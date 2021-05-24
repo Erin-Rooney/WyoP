@@ -193,6 +193,28 @@ pall2 %>%
   NULL
 
 
+pall2 %>%
+  filter(ctrt != "Fallow") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = amac, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "reserve P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+
+pall2 %>%
+  filter(ctrt != "Fallow") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = unavp, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "unavailable P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+
 #
 
 allmix = 
@@ -264,3 +286,41 @@ table_ftrt =
   pall_ftrt_p_summarized %>% 
   mutate(summary = paste(abundance, "\u00b1", se)) %>% 
   dplyr::select(-abundance, -se)
+
+#fit hsd function
+
+fit_hsd = function(dat){
+  a = aov(abund ~ ftrt, data = dat)
+  h = HSD.test(a, "ftrt")
+  h$groups %>% mutate(ftrt = row.names(.)) %>% 
+    rename(label = groups) %>%  
+    dplyr::select(ftrt, label)
+}
+
+
+#run fit_hsd function
+
+abund_hsd_ftrt = 
+  pall_ftrt_p_sample %>%
+  group_by(ctrt, time) %>% 
+  do(fit_hsd(.))
+
+# combine with summarized table 
+#something is going wrong and I'm winding up with phos pools all being the same
+
+abund_table_with_hsd_ftrt = 
+  table_ftrt %>% 
+  left_join(abund_hsd_ftrt) %>%
+  # combine the values with the label notation
+  mutate(value = paste(summary, label),
+         # this will also add " NA" for the blank cells
+         # use str_remove to remove the string
+         #value = str_remove(value, " NA")
+  ) %>% 
+  dplyr::select(-summary, -label) %>% 
+  pivot_wider(names_from = "phos_pool", values_from = "value") %>% 
+  force()
+
+abund_table_with_hsd_ftrt %>% knitr::kable() # prints a somewhat clean table in the console
+
+write.csv(abund_table_with_hsd_ftrt, "ftrtphos_hsdstats.csv", row.names = FALSE)
