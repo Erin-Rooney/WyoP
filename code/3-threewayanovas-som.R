@@ -156,3 +156,86 @@ summary.aov(unavp3_aov)
 
 porg3_aov <- aov(porg ~ ftrt*ctrt*time, data = pall2b)
 summary.aov(porg3_aov)
+
+
+#######################
+
+pall2 %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = pbic, color = ctrt, shape = ftrt), size = 3, alpha = 0.8)+
+  labs(title = "By Covercrop")+
+  #scale_color_manual(values = wes_palette("Darjeeling2", 9))+
+  theme_er()+
+  NULL
+
+
+  
+pall2 %>%
+  filter(ctrt != "Fallow") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = pbic, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "available P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+
+pall2 %>%
+  filter(ctrt != "Fallow") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = porg, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "organic P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+
+
+#
+
+allmix = 
+  pall2 %>% 
+  filter(ctrt == "All Mixture") 
+
+pbic4_aov <- aov(pbic ~ ftrt*time, data = allmix)
+summary.aov(pbic4_aov)
+
+pbic4hst <- HSD.test(pbic4_aov, "ftrt")
+pbic4hst
+
+cbio4_aov <- aov(cbio ~ ftrt*time, data = allmix)
+summary.aov(cbio4_aov)
+
+pbic4hst <- HSD.test(pbic4_aov, "ftrt")
+pbic4hst
+
+oat = 
+  pall2 %>% 
+  filter(ctrt == "Oat") 
+
+
+pbic5_aov <- aov(pbic ~ ftrt*time, data = oat)
+summary.aov(pbic5_aov)
+
+
+pbic5hsd <- HSD.test(pbic5_aov, "ftrt")
+pbic5hsd
+
+
+radish = 
+  pall2 %>% 
+  filter(ctrt == "Radish") 
+
+pbic6_aov <- aov(pbic ~ ftrt*time, data = radish)
+summary.aov(pbic6_aov)
+
+
+pbic6hsd <- HSD.test(pbic6_aov, "ftrt")
+pbic6hsd
+
+
+#############
+
+
