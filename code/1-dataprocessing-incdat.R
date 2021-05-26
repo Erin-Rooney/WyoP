@@ -92,9 +92,18 @@ phos_control =
   enzymes_nocon_forstats %>% 
   filter(enzymes_type == "phos" & ftrt == "Control")
 
+phos = 
+  enzymes_nocon_forstats %>% 
+  filter(enzymes_type == "phos")
+
 phoscomp.aov <- aov(enzymes_percbio ~ ctrt, data = phos_compost) 
 phoscont.aov <- aov(enzymes_percbio ~ ctrt, data = phos_control) 
 
+p <- aov(phos ~ ftrt, data = enzymes_nocon_forstats)
+summary.aov(p)
+
+h <- HSD.test(p, "ftrt")
+h
   
 summary.aov(phoscomp.aov)
 summary.aov(phoscont.aov)
