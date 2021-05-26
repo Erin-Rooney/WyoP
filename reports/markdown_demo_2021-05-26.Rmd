@@ -1,0 +1,115 @@
+---
+title: "Untitled"
+author: "Kaizad F. Patel"
+date: "5/26/2021"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is regular text
+
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+```
+
+Dealing with R:
+
+1. in-text R usage
+
+One plus two equals `1+2`.
+
+2. Create an R chunk using ```
+you need to specify "r" as the coding language
+
+```{r}
+names(iris)
+```
+
+Hide the code using `echo = FALSE`
+```{r, echo=FALSE}
+names(iris)
+```
+
+Hide the output
+```{r, include=FALSE}
+names(iris)
+```
+
+To skip the chunk altogether (i.e. skip the evaluation), use `eval = FALSE`
+
+```{r, eval=FALSE, echo=FALSE}
+names(iris)
+```
+
+```{r, fig.height=5, fig.width=7}
+plot(penguins)
+```
+
+---
+
+
+Headers
+
+# H1
+## H2
+### H3
+#### H4
+##### H5
+###### H6
+regular text
+
+---
+
+In-text formatting.
+**bold**, *italics*, ~~strikethrough~~, ~subscript~, <sup>superscript</sup>
+
+Fe<sup>+3</sup>
+
+---
+
+tables
+
+1. creating tables manually in markdown
+
+| colA | colB |
+|-----|------|
+|1 | 2 |
+|1 | 2 |
+
+2. create tables using knitr::kable()
+
+```{r}
+a = penguins %>% 
+  head() %>%  knitr::kable()
+```
+
+object = summary_table()
+
+in markdown
+
+loadd(object)
+readd(object) %>% 
+change1 %>% 
+change2 %>% 
+knitr::kable()
+
+---
+
+---
+
+
+<details>
+  <summary>Click to open</summary>
+  
+  this is the text.
+  
+  this is more text.
+  
+  
+  this is the text.  
+  this is more text.
+</details>
