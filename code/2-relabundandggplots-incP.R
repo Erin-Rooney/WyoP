@@ -39,7 +39,12 @@ p_relabund_by_sample =
   group_by(X, ctrt, ftrt, time) %>%
   dplyr::mutate(total = sum(abund)) %>% 
   ungroup() %>% 
-  mutate(relabund = (abund/total)*100)
+  mutate(relabund = (abund/total)*100) %>% 
+  mutate(phosphorus_pool = recode(phosphorus_pool, "pbic_percbio" = "Available P",
+                                'amac_percbio' = "Reserve P",
+                                'unavp_percbio' = "Fixed P",
+                                'porg_percbio' = "Organic P")) %>% 
+  mutate(phosphorus_pool = factor(phosphorus_pool, levels = c('Available P', "Reserve P", "Organic P", "Fixed P")))
 
 p_relabund_summary = 
   p_relabund_by_sample %>% 
@@ -79,19 +84,8 @@ p_relabund_summary %>%
   theme(legend.position = 'bottom')+
   NULL
   
-#P pool plots
 
-p_plots =
-  p_relabund_by_sample %>% 
-  select(ctrt, ftrt, time, phosphorus_pool, abund) %>% 
-  mutate(phosphorus_pool = recode(phosphorus_pool, "pbic_percbio" = "Available P",
-                                  'amac_percbio' = "Reserve P",
-                                  'unavp_percbio' = "Fixed P",
-                                  'porg_percbio' = "Organic P")) %>% 
-  mutate(phosphorus_pool = factor(phosphorus_pool, levels = c('Available P', "Reserve P", "Organic P", "Fixed P")))
-
-
-p_plots %>% 
+p_relabund_by_sample %>% 
   filter(time != "Baseline" & ctrt != "Control") %>% 
   ggplot()+
   geom_boxplot(aes(x = ctrt, y = abund, fill = ctrt), alpha = 0.6)+  
