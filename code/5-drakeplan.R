@@ -34,7 +34,7 @@ TREATMENTS = quos(ftrt, ctrt, time)
 source("code/drake_functions/a-functions_processing.R")
 source("code/drake_functions/b-functions_relabundances.R")
 source("code/drake_functions/c-functions_ggplots.R")
-# source("code/drake_functions/d-functions_statistics.R")
+source("code/drake_functions/d-functions_stats.R")
 
 # 3. load drake plans -----------------------------------------------------
 uwyo_drake_plan = drake_plan(
@@ -46,6 +46,7 @@ uwyo_drake_plan = drake_plan(
   pall = read.csv(file_in(PALL)),
   
 standardized = standardized_incub_dat(incub_dat),
+standardized_p = standardized_pall (pall),
 enzymes_longer = incub_dat_enzymes_longer(standardized),
 relabund_sample = p_relabund_by_sample (standardized),
 relabund_summary = p_relabund_summary(relabund_sample),
@@ -57,6 +58,17 @@ relabund_se = p_relabund_summary_se(relabund_sample),
   # c. PLOTS
 phos_relabund = relabund_plot(relabund_summary),
 phos_relabund_boxplot = relabund_sample_plot(relabund_sample),
+available_p_point = pbic_abs_plot(standardized_p),
+t1_available_p_point = t1_pbic_abs_plot(standardized_p),
+t2_available_p_point = t2_pbic_abs_plot(standardized_p),
+t1_reserve_p_point = t1_amac_abs_plot(standardized_p),
+t2_reserve_p_point = t2_amac_abs_plot(standardized_p),
+organic_p_point = porg_abs_plot(standardized_p),
+reserve_p_point = amac_abs_plot(standardized_p),
+unavailable_p_point = unavp_abs_plot(standardized_p),
+
+
+
   
   # # d. STATISTICS ---- 
   # ## PERMANOVA

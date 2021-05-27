@@ -54,3 +54,114 @@ relabund_sample_plot = function(p_relabund_by_sample){
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
   
 }
+
+
+###phosphorus (abs) geom points
+
+pbic_abs_plot = function(standardized_p){
+  standardized_p %>%
+  filter(ctrt != "Fallow") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = pbic, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "available P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+}
+
+
+t1_pbic_abs_plot = function(standardized_p){
+standardized_p %>%
+  filter(ctrt != "Fallow" & time == "1") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = pbic, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "available P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+}
+
+t2_pbic_abs_plot = function(standardized_p){
+standardized_p %>%
+  filter(ctrt != "Fallow" & time == "2") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = pbic, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "available P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+}
+  
+t1_amac_abs_plot = function(standardized_p){
+standardized_p %>%
+  filter(ctrt != "Fallow" & time == "1") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = amac, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "reserve P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+}
+
+t2_amac_abs_plot = function(standardized_p){
+standardized_p %>%
+  filter(ctrt != "Fallow" & time == "2") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = amac, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "reserve P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+}
+
+
+porg_abs_plot = function(standardized_p){
+standardized_p %>%
+  filter(ctrt != "Fallow") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = porg, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "organic P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+}
+
+amac_abs_plot = function(standardized_p){
+standardized_p %>%
+  filter(ctrt != "Fallow") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = amac, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "reserve P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+}
+
+unavp_abs_plot = function(standardized_p){
+  
+standardized_p %>%
+  filter(ctrt != "Fallow") %>% 
+  ggplot()+
+  geom_point(aes(x = cbio, y = unavp, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(y = "unavailable P (absolute)", x = "cover crop biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Sunset2", 3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+}
+#

@@ -17,8 +17,21 @@ Erin C Rooney
 
 ![](markdown-figs/doc/relabund_boxplot-1.png)<!-- -->
 
-## Including Plots
+![](markdown-figs/doc/available_p_point-1.png)<!-- -->
 
-You can also embed plots, for example:
+![](markdown-figs/doc/reserve_p_point-1.png)<!-- -->
 
-![](markdown-figs/doc/pressure-1.png)<!-- -->
+![](markdown-figs/doc/organic_p_point-1.png)<!-- -->
+
+![](markdown-figs/doc/unavailable_p_point-1.png)<!-- -->
+
+Available P separated by Time 1 and 2 (greenhouse rotations)
+![](markdown-figs/doc/t1_available_p_point-1.png)<!-- -->
+
+![](markdown-figs/doc/t2_available_p_point-1.png)<!-- -->
+
+Reserve P separated by Time 1 and 2 (greenhouse rotations)
+
+![](markdown-figs/doc/t1_reserve_p_point-1.png)<!-- -->
+
+![](markdown-figs/doc/t2_reserve_p_point-1.png)<!-- -->

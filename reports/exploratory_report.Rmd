@@ -30,6 +30,42 @@ readd(phos_relabund)
 readd(phos_relabund_boxplot)
 ```
 
+## PHOSPHORUS (ABSOLUTE) PLOTS
 
+Available P
+```{r available_p_point, fig.width=5, fig.height = 6, echo=FALSE}
+readd(available_p_point)
+```
 
+Reserve P
+```{r reserve_p_point, fig.width=5, fig.height = 6, echo=FALSE}
+readd(reserve_p_point)
+```
 
+Organic P
+```{r organic_p_point, fig.width=5, fig.height = 6, echo=FALSE}
+readd(organic_p_point)
+```
+
+Unavailable P
+```{r unavailable_p_point, fig.width=5, fig.height = 6, echo=FALSE}
+readd(unavailable_p_point)
+```
+
+Available P separated by Time 1 and 2 (greenhouse rotations) 
+```{r t1_available_p_point, fig.width=5, fig.height = 6, echo=FALSE}
+readd(t1_available_p_point)
+```
+
+```{r t2_available_p_point, fig.width=5, fig.height = 6, echo=FALSE}
+readd(t2_available_p_point)
+```
+
+Reserve P separated by Time 1 and 2 (greenhouse rotations)
+```{r t1_reserve_p_point, fig.width=5, fig.height = 6, echo=FALSE}
+readd(t1_reserve_p_point)
+```
+
+```{r t2_reserve_p_point, fig.width=5, fig.height = 6, echo=FALSE}
+readd(t2_reserve_p_point)
+```

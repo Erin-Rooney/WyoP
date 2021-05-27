@@ -70,6 +70,49 @@ standardized_incub_dat = function(incub_dat){
   
 }
 
+standardized_pall = function(pall){
+  pall %>% 
+  mutate(ctrt = recode(ctrt, "ALL " = 'All Mixture',
+                       "B" = 'Buckwheat',
+                       "BO" = 'Buckwheat Oat',
+                       "F" = "Faba Bean",
+                       "FLW" = "Fallow",
+                       "FO" = "Faba Bean Oat",
+                       "O" = 'Oat',
+                       "R" = 'Radish',
+                       "RO" = 'Radish Oat'),
+         ftrt = recode(ftrt, "CMPT" = "Compost",
+                       'CNTL ' = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  dplyr::mutate(ftrt = as.factor(ftrt),
+                ctrt = as.factor(ctrt),
+                time = as.factor(time),
+                pbic = as.numeric(pbic),
+                amac = as.numeric(amac),
+                edta = as.numeric(edta),
+                unavp = as.numeric(unavp),
+                porg = as.numeric(porg),
+                ptot = as.numeric(ptot),
+                cbio = as.numeric(cbio),
+                wbio = as.numeric(wbio),
+                caco3 = as.numeric(caco3),
+                inorgcarbon = as.numeric(inorgcarbon),
+                amm = as.numeric(amm),
+                nit = as.numeric(nit),
+                pmn = as.numeric(pmn),
+                pmc = as.numeric(pmc)
+  ) %>% 
+  dplyr::mutate(pbic_percbio  = (pbic/cbio),
+                amac_percbio = (amac/cbio),
+                unavp_percbio = (unavp/cbio),
+                porg_percbio = (porg/cbio),
+                inorgcarbon_percbio = (inorgcarbon/cbio),
+                amm_percbio = (amm/cbio),
+                nit_percbio = (nit/cbio),
+                pmn_percbio = (pmn/cbio),
+                pmc_percbio = (pmc/cbio)) 
+
+}
   
 incub_dat_enzymes_longer = function(standardized_incub_dat){
   standardized_incub_dat %>% 
