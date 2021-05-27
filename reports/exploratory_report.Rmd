@@ -1,0 +1,42 @@
+---
+title: "Untitled"
+author: "Erin C Rooney"
+date: "5/26/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      collapse = TRUE,
+                      warning = FALSE,
+                      message = FALSE,
+                      comment = "#>",
+                      fig.path = ("markdown-figs/doc/"))
+#source("code/0-packages.R")
+library(drake)
+```
+
+## R Markdown
+### Phosphorus Availability
+#### Cover Crops and Compost
+#### May 26 2021
+
+## RELABUND PLOTS
+```{r relabund, fig.width=8, echo=FALSE}
+readd(phos_relabund)
+```
+
+```{r relabund_boxplot, fig.width=8, echo=FALSE}
+readd(phos_relabund_boxplot)
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+
