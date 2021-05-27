@@ -42,7 +42,7 @@ relabund_plot = function(p_relabund_summary){
   NULL
 }
 
-relabund_sample_plot = function(p_relabund_summary){
+relabund_sample_plot = function(p_relabund_by_sample){
   p_relabund_by_sample %>% 
   filter(time != "Baseline" & ctrt != "Control") %>% 
   ggplot()+

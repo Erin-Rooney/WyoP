@@ -19,6 +19,7 @@ library(drake)
 library(tidyverse)
 library(PNWColors)
 library(soilpalettes)
+library(wesanderson)
 
 # 1. SET input file paths -------------------------------
 INCUB = "raw/Inc_finaldata_July2.csv"
@@ -48,14 +49,14 @@ standardized = standardized_incub_dat(incub_dat),
 enzymes_longer = incub_dat_enzymes_longer(standardized),
 relabund_sample = p_relabund_by_sample (standardized),
 relabund_summary = p_relabund_summary(relabund_sample),
-relabund_se = function(relabund_sample)
+relabund_se = p_relabund_summary_se(relabund_sample),
   
   
   # b. RELABUND ----
 
   # c. PLOTS
 phos_relabund = relabund_plot(relabund_summary),
-phos_relabund_boxplot = relabund_sample_plot(relabund_summary),
+phos_relabund_boxplot = relabund_sample_plot(relabund_sample),
   
   # # d. STATISTICS ---- 
   # ## PERMANOVA
@@ -74,7 +75,7 @@ phos_relabund_boxplot = relabund_sample_plot(relabund_summary),
 
 # REPORT
 outputreport = rmarkdown::render(
-  knitr_in("markdown/exploratory_report.Rmd"),
+  knitr_in("reports/exploratory_report.Rmd"),
   output_format = rmarkdown::github_document())
 )
 
