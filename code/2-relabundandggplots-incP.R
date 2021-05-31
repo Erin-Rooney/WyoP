@@ -146,7 +146,7 @@ ggbiplot(pca, obs.scale = 1, var.scale = 1,
   theme_er()+
   NULL
 
-#PERMANOVA all P values are 1 (???)
+#PERMANOVA all P values are 1 (???) #I think I fixed this actually, double check
 #create issue in github
 
 
