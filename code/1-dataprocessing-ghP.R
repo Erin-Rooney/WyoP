@@ -86,70 +86,70 @@ corr_data =
   na.omit() %>% 
   force()
 
-matrix1 <- rcorr(as.matrix(corr_data))
-
-matrix1
-
-
-# Extract the correlation coefficients
-corrpercbio_r <- matrix1$r
-# Extract p-values
-corrpercbio_p <- matrix1$P
-
-write.csv(corrpercbio_r, "corrpercbio_r.csv", row.names = TRUE)
-write.csv(corrpercbio_p, "corrpercbio_p.csv", row.names = TRUE)
-
-
-#correlation matrix for all cover crops with caco3/inorganic c (time1 only)
-
-
-corr_data2 =
-  pall2 %>%
-  filter(time == '1') %>% 
-  select(cbio, wbio, pbic_percbio, amac_percbio, unavp_percbio, 
-         porg_percbio, inorgcarbon_percbio, amm_percbio, nit_percbio,
-         pmn_percbio, pmc_percbio) %>% 
-  force()
-
-matrix2 <- rcorr(as.matrix(corr_data2))
-
-matrix2
-
-##rcorr(matrix2, type = c("pearson"))
-
-
-# Extract the correlation coefficients
-corrpercbiocaco3_r <- matrix2$r
-# Extract p-values
-corrpercbiocaco3_p <- matrix2$P
-
-write.csv(corrpercbiocaco3_r, "corrpercbiocaco3_r.csv", row.names = TRUE)
-write.csv(corrpercbiocaco3_p, "corrpercbiocaco3_p.csv", row.names = TRUE)
-
-#correlation matrix no standardization, no caco3
-
-corr_data3 =
-  pall2 %>%
-  #filter(time == '1') %>% 
-  select(cbio, wbio, pbic, amac, unavp, 
-         porg, amm, nit,
-         pmn, pmc) %>% 
-  force()
-
-matrix3 <- rcorr(as.matrix(corr_data3))
-
-matrix3
-
-
-# Extract the correlation coefficients
-corr_r <- matrix3$r
-# Extract p-values
-corr_p <- matrix3$P
-
-write.csv(corr_r, "corr_r.csv", row.names = TRUE)
-write.csv(corr_p, "corr_p.csv", row.names = TRUE)
-
-
+# matrix1 <- rcorr(as.matrix(corr_data))
+# 
+# matrix1
+# 
+# 
+# # Extract the correlation coefficients
+# corrpercbio_r <- matrix1$r
+# # Extract p-values
+# corrpercbio_p <- matrix1$P
+# 
+# write.csv(corrpercbio_r, "corrpercbio_r.csv", row.names = TRUE)
+# write.csv(corrpercbio_p, "corrpercbio_p.csv", row.names = TRUE)
+# 
+# 
+# #correlation matrix for all cover crops with caco3/inorganic c (time1 only)
+# 
+# 
+# corr_data2 =
+#   pall2 %>%
+#   filter(time == '1') %>% 
+#   select(cbio, wbio, pbic_percbio, amac_percbio, unavp_percbio, 
+#          porg_percbio, inorgcarbon_percbio, amm_percbio, nit_percbio,
+#          pmn_percbio, pmc_percbio) %>% 
+#   force()
+# 
+# matrix2 <- rcorr(as.matrix(corr_data2))
+# 
+# matrix2
+# 
+# ##rcorr(matrix2, type = c("pearson"))
+# 
+# 
+# # Extract the correlation coefficients
+# corrpercbiocaco3_r <- matrix2$r
+# # Extract p-values
+# corrpercbiocaco3_p <- matrix2$P
+# 
+# write.csv(corrpercbiocaco3_r, "corrpercbiocaco3_r.csv", row.names = TRUE)
+# write.csv(corrpercbiocaco3_p, "corrpercbiocaco3_p.csv", row.names = TRUE)
+# 
+# #correlation matrix no standardization, no caco3
+# 
+# corr_data3 =
+#   pall2 %>%
+#   #filter(time == '1') %>% 
+#   select(cbio, wbio, pbic, amac, unavp, 
+#          porg, amm, nit,
+#          pmn, pmc) %>% 
+#   force()
+# 
+# matrix3 <- rcorr(as.matrix(corr_data3))
+# 
+# matrix3
+# 
+# 
+# # Extract the correlation coefficients
+# corr_r <- matrix3$r
+# # Extract p-values
+# corr_p <- matrix3$P
+# 
+# write.csv(corr_r, "corr_r.csv", row.names = TRUE)
+# write.csv(corr_p, "corr_p.csv", row.names = TRUE)
+# 
+# 
 
 
 #################
@@ -192,3 +192,17 @@ pall2 %>%
   ylim(0,50)+
   NULL
 
+pall2_grouped =
+  pall2 %>%
+  dplyr::mutate(grouping = if_else(ctrt == "Fallow", "Fallow", "Cover Crop"))
+  
+pall2_grouped %>% 
+  ggplot()+
+  geom_point(aes(x = pbic, y = wbio, color = grouping, shape = ftrt), size = 4, alpha = 0.8)+
+  labs(x = "available P (absolute)", y = "wheat biomass, g/pot")+
+  scale_color_manual(values = pnw_palette("Bay", 2))+
+  facet_wrap(.~ftrt)+
+  theme_er()+
+  theme(legend.position = "bottom")+
+  NULL
+  

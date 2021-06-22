@@ -73,3 +73,16 @@ readd(t1_reserve_p_point)
 ```{r t2_reserve_p_point, fig.width=5, fig.height = 6, echo=FALSE}
 readd(t2_reserve_p_point)
 ```
+
+## Session Info
+
+<details>   
+   <summary>click to expand</summary>
+
+Date run: `r Sys.Date()`
+
+```{r}
+sessionInfo()
+```
+
+</details>   
