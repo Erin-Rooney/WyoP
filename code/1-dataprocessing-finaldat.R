@@ -8,6 +8,7 @@ source("code/0-packages.R")
 #load raw data--------------
 incub_dat = read.csv("raw/Inc_finaldata_July2.csv")
 bio_dat = read.csv("raw/biocorr_1.csv") %>%  rename('ctrt' = 'ï..ctrt')
+bio_dat_longer = read.csv("raw/allfert_allcrop_P.csv") 
 gh_dat = read.csv("raw/gh_pfrac.csv") %>%  rename('ctrt' = 'ï..ctrt')
 
 #data processing
@@ -38,6 +39,31 @@ bio_dat2 =
   dplyr::mutate(wbio = as.numeric(wbio),
                 cbio = as.numeric(cbio)) %>% 
   dplyr::mutate(wbio_per_cbio = (wbio/cbio)) %>% 
+  na.omit()
+
+
+bio_dat2_longer = 
+  bio_dat_longer %>% 
+  mutate(ctrt = recode(ctrt, "ALL " = 'All Mixture',
+                       "B" = 'Buckwheat',
+                       "BO" = 'Buckwheat Oat',
+                       "F" = "Faba Bean",
+                       "FLW" = "Fallow",
+                       "FO" = "Faba Bean Oat",
+                       "O" = 'Oat',
+                       "R" = 'Radish',
+                       "RO" = 'Radish Oat')) %>% 
+  # dplyr::mutate(species_group = case_when(grepl("All", ctrt)~"All",
+  #                                grepl("Buckwheat", ctrt)~"B",
+  #                                grepl("Faba", ctrt)~"F",
+  #                                grepl("Radish", ctrt)~"R",
+  #                                grepl("Fallow", ctrt)~"Fal")) 
+  mutate(ctrt = factor(ctrt, levels = c('All Mixture', 'Buckwheat Oat', 'Buckwheat', 
+                                        'Faba Bean Oat', "Faba Bean", 'Radish Oat', 
+                                        "Radish", 'Oat', 'Fallow'))) %>% 
+  # dplyr::mutate(wbio = as.numeric(wbio),
+  #               cbio = as.numeric(cbio)) %>% 
+  # dplyr::mutate(wbio_per_cbio = (wbio/cbio)) %>% 
   na.omit()
 #   
 # bio_dat3$species_group[is.na(bio_dat3$species_group)] <- "O"
@@ -108,6 +134,162 @@ bio_dat2 %>%
   scale_shape_manual(values = c(21,18,23,15,22,17,24,3,4))+
   ylim(0,4.5)+
   theme_er()
+
+bio_dat2_grouped =
+  bio_dat2_longer %>%
+  dplyr::mutate(grouping = if_else(ctrt == "Fallow", "Fallow", "Cover Crop")) 
+
+# bio_dat2_grouped %>% 
+#   ggplot()+
+#   geom_point(aes(x = pbic, y = wbio, color = grouping, shape = ftrt), size = 4, alpha = 0.8)+
+#   labs(x = "available P (absolute)", y = "wheat biomass, g/pot")+
+#   scale_color_manual(values = pnw_palette("Bay", 2))+
+#   facet_wrap(.~ftrt)+
+#   theme_er()+
+#   theme(legend.position = "bottom")+
+#   NULL
+
+bio_dat2_grouped %>% 
+  ggplot(aes(x = as.numeric(pbic), y = wbio))+
+  geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 5)+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "wheat biomass, grams/pot",
+       x = "cover crop biomass, grams/pot")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Shuksan2',9))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,18,23,15,22,17,24,3,4))+
+  ylim(0,4.5)+
+  facet_wrap(.~ftrt)+
+  theme_er()
+
+bio_dat2_grouped %>% 
+  ggplot(aes(x = as.numeric(pbic), y = wbio))+
+  geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "wheat biomass, grams/pot",
+       x = "Available P, absolute")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Shuksan2',3))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22))+
+  ylim(0,4.5)+
+  theme_er()
+
+
+bio_dat2_grouped %>% 
+  ggplot(aes(x = as.numeric(amac), y = wbio))+
+  geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "wheat biomass, grams/pot",
+       x = "Reserve P, absolute")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Shuksan2',3))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22))+
+  ylim(0,4.5)+
+  theme_er()
+
+bio_dat2_grouped %>% 
+  ggplot(aes(x = as.numeric(porg), y = wbio))+
+  geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "wheat biomass, grams/pot",
+       x = "Organic P, absolute")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Shuksan2',3))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22))+
+  ylim(0,4.5)+
+  theme_er()
+
+bio_dat2_grouped %>% 
+  ggplot(aes(x = as.numeric(unavp), y = wbio))+
+  geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "wheat biomass, grams/pot",
+       x = "Fixed P, absolute")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Shuksan2',3))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22))+
+  ylim(0,4.5)+
+  theme_er()
+
+#now anova. what a mess
+
+wbio_aov <- aov(wbio ~ grouping, data = bio_dat2_grouped)
+summary.aov(wbio_aov)
+
+bio_dat2_grouped_filtered =
+  bio_dat2_grouped %>% 
+  filter(pbic != '.')
+
+pbic_aov <- aov(pbic ~ grouping, data = bio_dat2_grouped_filtered)
+summary.aov(pbic_aov)
+
+
+bio_dat2_grouped_filtered =
+  bio_dat2_grouped %>% 
+  filter(amac != '.')
+
+amac_aov <- aov(amac ~ grouping, data = bio_dat2_grouped_filtered)
+summary.aov(amac_aov)
+
+
+bio_dat2_grouped_filtered =
+  bio_dat2_grouped %>% 
+  filter(porg != '.')
+
+porg_aov <- aov(porg ~ grouping, data = bio_dat2_grouped_filtered)
+summary.aov(porg_aov)
+
+bio_dat2_grouped_filtered =
+  bio_dat2_grouped %>% 
+  filter(unavp != '.')
+
+unavp_aov <- aov(unavp ~ grouping, data = bio_dat2_grouped_filtered)
+summary.aov(unavp_aov)
 
 
 bio_dat3 =
