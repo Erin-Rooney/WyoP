@@ -171,7 +171,7 @@ bio_dat2_grouped %>%
   facet_wrap(.~ftrt)+
   theme_er()
 
-bio_dat2_grouped %>% 
+g1 = bio_dat2_grouped %>% 
   ggplot(aes(x = as.numeric(pbic), y = wbio))+
   geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
   # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
@@ -186,14 +186,15 @@ bio_dat2_grouped %>%
        x = "Available P, absolute")+
   #scale_color_manual(values = mycolors)+
   #scale_color_manual(values = pnw_palette('Shuksan',9))+
-  scale_fill_manual(values = pnw_palette('Shuksan2',3))+
+  scale_fill_manual(values = pnw_palette('Sunset2',2))+
   #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
   scale_shape_manual(values = c(21,22))+
   ylim(0,4.5)+
+  xlim(0,60)+
   theme_er()
 
 
-bio_dat2_grouped %>% 
+g2 = bio_dat2_grouped %>% 
   ggplot(aes(x = as.numeric(amac), y = wbio))+
   geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
   # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
@@ -208,13 +209,14 @@ bio_dat2_grouped %>%
        x = "Reserve P, absolute")+
   #scale_color_manual(values = mycolors)+
   #scale_color_manual(values = pnw_palette('Shuksan',9))+
-  scale_fill_manual(values = pnw_palette('Shuksan2',3))+
+  scale_fill_manual(values = pnw_palette('Sunset2',2))+
   #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
   scale_shape_manual(values = c(21,22))+
   ylim(0,4.5)+
+  xlim(0,100)+
   theme_er()
 
-bio_dat2_grouped %>% 
+g3 = bio_dat2_grouped %>% 
   ggplot(aes(x = as.numeric(porg), y = wbio))+
   geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
   # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
@@ -229,13 +231,14 @@ bio_dat2_grouped %>%
        x = "Organic P, absolute")+
   #scale_color_manual(values = mycolors)+
   #scale_color_manual(values = pnw_palette('Shuksan',9))+
-  scale_fill_manual(values = pnw_palette('Shuksan2',3))+
+  scale_fill_manual(values = pnw_palette('Sunset2',2))+
   #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
   scale_shape_manual(values = c(21,22))+
   ylim(0,4.5)+
+  xlim(0,600)+
   theme_er()
 
-bio_dat2_grouped %>% 
+g4 = bio_dat2_grouped %>% 
   ggplot(aes(x = as.numeric(unavp), y = wbio))+
   geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
   # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
@@ -250,11 +253,333 @@ bio_dat2_grouped %>%
        x = "Fixed P, absolute")+
   #scale_color_manual(values = mycolors)+
   #scale_color_manual(values = pnw_palette('Shuksan',9))+
-  scale_fill_manual(values = pnw_palette('Shuksan2',3))+
+  scale_fill_manual(values = pnw_palette('Sunset2',2))+
   #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
   scale_shape_manual(values = c(21,22))+
   ylim(0,4.5)+
+  xlim(0,400)+
   theme_er()
+
+library(patchwork)
+library(cowplot)
+
+g1+g2+g3+g4+ #combines the two plots
+   plot_layout(guides = "collect") # sets a common legend
+
+#SOM
+
+bio_dat2_groupedlonger =
+  bio_dat2_grouped %>% 
+  select(ftrt, ctrt, time, pbic, amac, unavp, porg, caco3, sph2, amm, nit, pmn, pmc, grouping)
+
+p_longer = 
+  bio_dat2_groupedlonger %>% 
+  select(ftrt, ctrt, time, pbic, amac, unavp, porg) %>% 
+  pivot_longer(-c(ftrt, ctrt, time), names_to= "p_pool", values_to= "p_value")
+
+all_combo_plonger =
+bio_dat2_groupedlonger %>% 
+  select(ftrt, ctrt, time, caco3, sph2, amm, nit, pmn, pmc, grouping) %>% 
+  left_join(p_longer) %>% 
+  na.omit(.)
+
+all_combo_plonger %>% 
+  ggplot(aes(x = as.numeric(sph2), y = as.numeric(p_value)))+
+  geom_point(aes(fill = p_pool, shape = p_pool), color = "black", size = 4, alpha = 0.6)+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "Available P, absolute",
+       x = "pH")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Sunset2',4))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22, 23, 24))+
+  facet_wrap(ctrt~.)+
+  #ylim(0,4.5)+
+  #xlim(0,60)+
+  theme_er()
+
+
+all_combo_plonger %>%
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                               'CNTL' = "Control",
+                               'IFERT' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = as.numeric(p_value), fill = p_pool), 
+           position = "stack", stat= "identity")+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "Absolute P, mg/kg",
+       x = " ")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Sunset2',4))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22, 23, 24))+
+  facet_wrap(.~ftrt)+
+  #ylim(0,4.5)+
+  #xlim(0,60)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
+
+b1 = bio_dat2_grouped %>%
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       "CNTL " = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = as.numeric(amm), fill = ctrt), 
+           position = "stack", stat= "identity")+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "Ammonium, mg/kg",
+       x = " ")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22, 23, 24))+
+  facet_wrap(.~ftrt)+
+  #ylim(0,4.5)+
+  #xlim(0,60)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
+#SOM geom_bar plots with SD
+
+bio_dat2_grouped = 
+  bio_dat2_grouped %>% 
+  dplyr::mutate(amm = as.numeric(amm),
+                nit = as.numeric(nit),
+                pmn = as.numeric(pmn),
+                pmc = as.numeric(pmc))
+
+SOM_sd = 
+bio_dat2_grouped %>% 
+  select(ftrt, ctrt, time, nit, amm, pmn, pmc) %>% 
+  group_by(ftrt, ctrt) %>% 
+  dplyr::summarise(nit_mean = round(mean(nit, na.rm= TRUE)),
+            nit_se = round(sd(nit, na.rm= TRUE)/sqrt(n())),
+            amm_mean = round(mean(amm, na.rm= TRUE)),
+            amm_se = round(sd(amm, na.rm= TRUE)/sqrt(n())),
+            pmc_mean = round(mean(pmc, na.rm= TRUE)),
+            pmc_se = round(sd(pmc, na.rm= TRUE)/sqrt(n())),
+            pmn_mean = round(mean(pmn, na.rm= TRUE)),
+            pmn_se = round(sd(pmn, na.rm= TRUE)/sqrt(n())),
+            ) 
+
+
+SOM_sd %>%
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       "CNTL " = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = nit_mean, fill = ctrt), 
+           position = "stack", stat= "identity", alpha = 0.7, color = "gray50")+
+  geom_errorbar(aes(x = ctrt, ymin = nit_mean - nit_se, ymax = nit_mean + nit_se), width = .2,
+                position = position_dodge(.9), color = 'gray50')+
+  labs(y = "Nitrate, mg/kg",
+       x = " ")+
+  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  facet_wrap(.~ftrt)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
+SOM_sd %>%
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       "CNTL " = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = amm_mean, fill = ctrt), 
+           position = "stack", stat= "identity", alpha = 0.7, color = "gray50")+
+  geom_errorbar(aes(x = ctrt, ymin = amm_mean - amm_se, ymax = amm_mean + amm_se), width = .2,
+                position = position_dodge(.9), color = 'gray50')+
+  labs(y = "Ammonium, mg/kg",
+       x = " ")+
+  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  facet_wrap(.~ftrt)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
+SOM_sd %>%
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       "CNTL " = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = pmc_mean, fill = ctrt), 
+           position = "stack", stat= "identity", alpha = 0.7, color = "gray50")+
+  geom_errorbar(aes(x = ctrt, ymin = pmc_mean - pmc_se, ymax = pmc_mean + pmc_se), width = .2,
+                position = position_dodge(.9), color = 'gray50')+
+  labs(y = "Potentially Mineralizable Carbon, mg/kg",
+       x = " ")+
+  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  facet_wrap(.~ftrt)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
+SOM_sd %>%
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       "CNTL " = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = pmn_mean, fill = ctrt), 
+           position = "stack", stat= "identity", alpha = 0.7, color = "gray50")+
+  geom_errorbar(aes(x = ctrt, ymin = pmn_mean - pmn_se, ymax = pmn_mean + pmn_se), width = .2,
+                position = position_dodge(.9), color = 'gray50')+
+  labs(y = "Potentially Mineralizable Nitrogen, mg/kg",
+       x = " ")+
+  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  facet_wrap(.~ftrt)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
+bio_dat2_grouped %>%
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       "CNTL " = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = as.numeric(pmc), fill = ctrt), 
+           position = "stack", stat= "identity")+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "Potentially Mineralizable Carbon, mg/kg",
+       x = " ")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22, 23, 24))+
+  facet_wrap(.~ftrt)+
+  #ylim(0,4.5)+
+  #xlim(0,60)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
+bio_dat2_grouped %>%
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       "CNTL " = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = as.numeric(pmn), fill = ctrt), 
+           position = "stack", stat= "identity")+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "Potentially Mineralizable Nitrogen, mg/kg",
+       x = " ")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22, 23, 24))+
+  facet_wrap(.~ftrt)+
+  #ylim(0,4.5)+
+  #xlim(0,60)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
+
+g2 = bio_dat2_grouped %>% 
+  ggplot(aes(x = as.numeric(amac), y = wbio))+
+  geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "wheat biomass, grams/pot",
+       x = "Reserve P, absolute")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Sunset2',2))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22))+
+  ylim(0,4.5)+
+  xlim(0,100)+
+  theme_er()
+
+g3 = bio_dat2_grouped %>% 
+  ggplot(aes(x = as.numeric(porg), y = wbio))+
+  geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "wheat biomass, grams/pot",
+       x = "Organic P, absolute")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Sunset2',2))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22))+
+  ylim(0,4.5)+
+  xlim(0,600)+
+  theme_er()
+
+g4 = bio_dat2_grouped %>% 
+  ggplot(aes(x = as.numeric(unavp), y = wbio))+
+  geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.6)+
+  # geom_smooth(method = "lm", se = FALSE, group = 'grouping')+
+  # stat_regline_equation(label.y = 4, aes(label = ..eq.label..)) +
+  # stat_regline_equation(label.y = 3.75, aes(label = ..rr.label..)) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "wheat biomass, grams/pot",
+       x = "Fixed P, absolute")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Sunset2',2))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,22))+
+  ylim(0,4.5)+
+  xlim(0,400)+
+  theme_er()
+
+library(patchwork)
+library(cowplot)
+
+g1+g2+g3+g4+ #combines the two plots
+  plot_layout(guides = "collect") # sets a common legend
 
 #now anova. what a mess
 
@@ -290,6 +615,63 @@ bio_dat2_grouped_filtered =
 
 unavp_aov <- aov(unavp ~ grouping, data = bio_dat2_grouped_filtered)
 summary.aov(unavp_aov)
+
+
+bio_dat2_grouped_filtered =
+  bio_dat2_grouped %>% 
+  filter(pmn != '.')
+
+pmn_aov <- aov(pmn ~ ctrt, data = bio_dat2_grouped_filtered)
+summary.aov(pmn_aov)
+
+pmn_hsd <- HSD.test(pmn_aov, "ctrt")
+print(pmn_hsd)
+
+
+bio_dat2_grouped_filtered =
+  bio_dat2_grouped %>% 
+  filter(pmc != '.')
+
+pmc_aov <- aov(pmc ~ ctrt, data = bio_dat2_grouped_filtered)
+summary.aov(pmc_aov)
+
+
+
+bio_dat2_grouped_filtered =
+  bio_dat2_grouped %>% 
+  filter(nit != '.')
+
+nit_aov <- aov(nit ~ ctrt, data = bio_dat2_grouped_filtered)
+summary.aov(nit_aov)
+
+bio_dat2_grouped_filtered =
+  bio_dat2_grouped %>% 
+  filter(amm != '.')
+
+amm_aov <- aov(amm ~ ctrt, data = bio_dat2_grouped_filtered)
+summary.aov(amm_aov)
+
+
+bio_dat2_grouped_filtered_cntl =
+  bio_dat2_grouped %>% 
+  filter(pmn != '.' & ftrt == "CNTL ")
+
+pmn_aov <- aov(pmn ~ ctrt, data = bio_dat2_grouped_filtered_cntl)
+summary.aov(pmn_aov)
+
+pmn_hsd <- HSD.test(pmn_aov, "ctrt")
+print(pmn_hsd)
+
+
+bio_dat2_grouped_filtered_ifert =
+  bio_dat2_grouped %>% 
+  filter(pmn != '.' & ftrt == "IFERT ")
+
+pmn_aov <- aov(pmn ~ ctrt, data = bio_dat2_grouped_filtered_ifert)
+summary.aov(pmn_aov)
+
+pmn_hsd <- HSD.test(pmn_aov, "ctrt")
+print(pmn_hsd)
 
 
 bio_dat3 =
