@@ -41,11 +41,54 @@ incub_dat_enzymeslonger %>%
   filter(enzymes_type == "phos_percbio" & time != "Baseline") %>% 
   ggplot() +
   geom_boxplot(aes(x = ctrt, y = enzymes_percbio, fill = time), alpha = 0.7) +
-  labs(x = "", y = "Phosphatase Enzyme concentrations/g ccbiomass")+
-  scale_fill_manual(values = wes_palette('GrandBudapest1',3))+
+  labs(x = "", y = "Phosphatase concentrations/g ccbiomass")+
+  scale_fill_manual(values = wes_palette('Royal1',3))+
+  facet_grid(ftrt~.)+
+  theme_er()+
+  theme(legend.position = "bottom")
+
+
+incub_dat_enzymeslonger %>% 
+  filter(enzymes_type == "bg_percbio" & time != "Baseline") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = ctrt, y = enzymes_percbio, fill = time), alpha = 0.7) +
+  labs(x = "", y = "BG Enzyme concentrations/g ccbiomass")+
+  scale_fill_manual(values = wes_palette('Royal1',3))+
   facet_grid(ftrt~.)+
   theme_er()
-  
+
+incub_dat_enzymeslonger %>% 
+  filter(enzymes_type == "nag_percbio" & time != "Baseline") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = ctrt, y = enzymes_percbio, fill = time), alpha = 0.7) +
+  labs(x = "", y = "NAG Enzyme concentrations/g ccbiomass")+
+  scale_fill_manual(values = wes_palette('Royal1',3))+
+  facet_grid(ftrt~.)+
+  theme_er()
+
+
+incub_dat_enzymeslonger %>% 
+  filter(enzymes_type == "lap_percbio" & time != "Baseline") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = ctrt, y = enzymes_percbio, fill = time), alpha = 0.7) +
+  labs(x = "", y = "LAP Enzyme concentrations/g ccbiomass")+
+  scale_fill_manual(values = wes_palette('Royal1',3))+
+  facet_grid(ftrt~.)+
+  theme_er()
+
+incub_dat_enzymeslonger %>% 
+  filter(enzymes_type == "abts_percbio" & time != "Baseline") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = ctrt, y = enzymes_percbio, fill = time), alpha = 0.7) +
+  labs(x = "", y = "ABTS Enzyme concentrations/g ccbiomass")+
+  scale_fill_manual(values = wes_palette('Royal1',3))+
+  facet_grid(ftrt~.)+
+  theme_er()+
+  theme(legend.position = "bottom")
+
+
+
+
 
 #stats-------------------
 
@@ -84,6 +127,65 @@ enzymes_nocon_forstats =
   #pivot_wider(names_from = "enzymes_type", values_from = "enzymes_percbio") %>% 
   force()
 
+
+abts_aov <- aov(abts_percbio ~ ctrt*ftrt*time, data = incub_dat2 %>% filter(time != "Baseline" & ctrt != "Control"))
+summary.aov(abts_aov)
+
+abts.hsd <- HSD.test(abts_aov, "ctrt")
+print(abts.hsd)
+
+abts.hsd <- HSD.test(abts_aov, "time")
+print(abts.hsd)
+
+
+lap_aov <- aov(lap_percbio ~ ctrt*ftrt*time, data = incub_dat2 %>% filter(time != "Baseline" & ctrt != "Control"))
+summary.aov(lap_aov)
+
+lap.hsd <- HSD.test(lap_aov, "ctrt")
+print(lap.hsd)
+
+lap.hsd <- HSD.test(lap_aov, "time")
+print(lap.hsd)
+
+#AG
+
+ag_aov <- aov(ag_percbio ~ ctrt*ftrt*time, data = incub_dat2 %>% filter(time != "Baseline" & ctrt != "Control"))
+summary.aov(ag_aov)
+
+ag.hsd <- HSD.test(ag_aov, "ctrt")
+print(ag.hsd)
+
+ag.hsd <- HSD.test(ag_aov, "time")
+print(ag.hsd)
+
+#BG
+
+bg_aov <- aov(bg_percbio ~ ctrt*ftrt*time, data = incub_dat2 %>% filter(time != "Baseline" & ctrt != "Control"))
+summary.aov(bg_aov)
+
+bg.hsd <- HSD.test(bg_aov, "ctrt")
+print(bg.hsd)
+
+bg.hsd <- HSD.test(bg_aov, "time")
+print(bg.hsd)
+
+#PHOS
+
+phos_aov <- aov(phos_percbio ~ ctrt*ftrt*time, data = incub_dat2 %>% filter(time != "Baseline" & ctrt != "Control"))
+summary.aov(phos_aov)
+
+phos.hsd <- HSD.test(phos_aov, "ctrt")
+print(phos.hsd)
+
+phos.hsd <- HSD.test(phos_aov, "time")
+print(phos.hsd)
+
+
+# abts.hsd %>% knitr::kable() # prints a somewhat clean table in the console
+# 
+# 
+# write.csv(abts.hsd, "abts.hsd.csv", row.names = FALSE)
+
 phos_compost = 
   enzymes_nocon_forstats %>% 
   filter(enzymes_type == "phos" & ftrt == "Compost")
@@ -113,6 +215,9 @@ l_comp = lme(enzymes_percbio ~ ctrt, random = ~1|time, na.action = na.omit, data
 summary(l_comp)
 print(l_comp)
 anova(l_comp)
+
+
+
 
 l_cont = lme(enzymes_percbio ~ ctrt, random = ~1|time, na.action = na.omit, data = phos_control)
 summary(l_cont)
@@ -353,6 +458,7 @@ ctrt_hsd = HSD.test(ctrt.aov, "ctrt")
 #   group_by(ctrt) %>% 
 #   do(fit_hsd(.))
 # 
+
 # ## step 4: combine the summarized values with the asterisks
 # relabund_table_ctrtppool = 
 #   relabund_table %>% 

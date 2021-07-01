@@ -636,6 +636,8 @@ SOM_sd %>%
            position = "stack", stat= "identity", alpha = 0.7, color = "gray50")+
   geom_errorbar(aes(x = ctrt, ymin = amm_mean - amm_se, ymax = amm_mean + amm_se), width = .2,
                 position = position_dodge(.9), color = 'gray50')+
+  # annotate("text", x = 1, y = 0.076, label = "A") +
+  # annotate("text", x = 2, y = 0.037, label = "B"))
   labs(y = "Ammonium, mg/kg",
        x = " ")+
   scale_fill_manual(values = pnw_palette('Sunset',9))+
@@ -858,7 +860,8 @@ bio_dat2_grouped_filtered =
 pmc_aov <- aov(pmc ~ ctrt, data = bio_dat2_grouped_filtered)
 summary.aov(pmc_aov)
 
-
+pmc_hsd <- HSD.test(pmc_aov, "ctrt")
+print(pmc_hsd)
 
 bio_dat2_grouped_filtered =
   bio_dat2_grouped %>% 
@@ -867,6 +870,9 @@ bio_dat2_grouped_filtered =
 nit_aov <- aov(nit ~ ctrt, data = bio_dat2_grouped_filtered)
 summary.aov(nit_aov)
 
+nit_hsd <- HSD.test(nit_aov, "ctrt")
+print(nit_hsd)
+
 bio_dat2_grouped_filtered =
   bio_dat2_grouped %>% 
   filter(amm != '.')
@@ -874,6 +880,8 @@ bio_dat2_grouped_filtered =
 amm_aov <- aov(amm ~ ctrt, data = bio_dat2_grouped_filtered)
 summary.aov(amm_aov)
 
+amm_hsd <- HSD.test(amm_aov, "ctrt")
+print(amm_hsd)
 
 bio_dat2_grouped_filtered_cntl =
   bio_dat2_grouped %>% 

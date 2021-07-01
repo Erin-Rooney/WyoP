@@ -169,11 +169,40 @@ pall2 %>%
   NULL
 
 
+pall3 = 
+  pall2 %>% 
+  dplyr::mutate(ftrt = as.factor(ftrt),
+                ctrt = as.factor(ctrt),
+                time = as.factor(time),
+                pbic = as.numeric(pbic),
+                amac = as.numeric(amac),
+                edta = as.numeric(edta),
+                unavp = as.numeric(unavp),
+                porg = as.numeric(porg),
+                ptot = as.numeric(ptot),
+                cbio = as.numeric(cbio),
+                wbio = as.numeric(wbio),
+                caco3 = as.numeric(caco3),
+                inorgcarbon = as.numeric(inorgcarbon),
+                amm = as.numeric(amm),
+                nit = as.numeric(nit),
+                pmn = as.numeric(pmn),
+                pmc = as.numeric(pmc)
+)
+
   
-pall2 %>%
+pall3 %>%
   filter(ctrt != "Fallow") %>% 
-  ggplot()+
-  geom_point(aes(x = cbio, y = pbic, color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  ggplot(aes(x = cbio, y = pbic, group = ctrt))+
+  geom_point(aes(color = ftrt, shape = ftrt), size = 4, alpha = 0.8)+
+  #geom_smooth(method = "lm", se = FALSE, group = 'ctrt')+
+  #stat_regline_equation(label.y = 47,label.x = 50, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 45, label.x = 50, aes(label = ..rr.label..)) +
+  stat_fit_glance(method = 'lm',
+                  method.args = list(formula = formula),
+                  geom = 'text',
+                  aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+                  label.x = 15, label.y = 3.5, size = 3)+
   labs(y = "available P (absolute)", x = "cover crop biomass, g/pot")+
   scale_color_manual(values = pnw_palette("Sunset2", 3))+
   facet_wrap(.~ctrt)+
