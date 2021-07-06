@@ -48,6 +48,17 @@ incub_dat_enzymeslonger %>%
   theme(legend.position = "bottom")
 
 
+incub_dat2 %>% 
+  filter(time != "Baseline" & ctrt == "Control") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = ftrt, y = phos, fill = time), alpha = 0.7) +
+  labs(x = "", y = "Phosphatase concentrations in Fallow")+
+  scale_fill_manual(values = wes_palette('Royal1',3))+
+  #facet_grid(ftrt~.)+
+  theme_er()+
+  theme(legend.position = "bottom")
+
+
 incub_dat_enzymeslonger %>% 
   filter(enzymes_type == "bg_percbio" & time != "Baseline") %>% 
   ggplot() +
@@ -175,6 +186,16 @@ phos_aov <- aov(phos_percbio ~ ctrt*ftrt*time, data = incub_dat2 %>% filter(time
 summary.aov(phos_aov)
 
 phos.hsd <- HSD.test(phos_aov, "ctrt")
+print(phos.hsd)
+
+phos.hsd <- HSD.test(phos_aov, "time")
+print(phos.hsd)
+
+
+phos_aov <- aov(phos ~ ftrt*time, data = incub_dat2 %>% filter(time != "Baseline" & ctrt == "Control"))
+summary.aov(phos_aov)
+
+phos.hsd <- HSD.test(phos_aov, "ftrt")
 print(phos.hsd)
 
 phos.hsd <- HSD.test(phos_aov, "time")
