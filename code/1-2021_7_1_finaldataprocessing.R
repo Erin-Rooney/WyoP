@@ -1,6 +1,6 @@
 #Greenhouse incubation
 #E Rooney
-#5 19 2021
+#7 19 2021
 
 #load packages----------------
 source("code/0-packages.R")
@@ -33,8 +33,11 @@ bio_dat2 =
                                         "Radish", 'Oat', 'Fallow'))) %>% 
   dplyr::mutate(wbio = as.numeric(wbio),
                 cbio = as.numeric(cbio)) %>% 
-  dplyr::mutate(wbio_per_cbio = (wbio/cbio)) %>% 
-  dplyr::mutate(ftrt = as.factor(ftrt),
+  dplyr::mutate(wbio_per_cbio = (wbio/cbio),
+                wbiokg_ha = (wbio * 7.29),
+                cbiokg_ha = (cbio * 7.29)) %>% 
+  
+dplyr::mutate(ftrt = as.factor(ftrt),
                 ctrt = as.factor(ctrt),
                 time = as.factor(time),
                 pbic = as.numeric(pbic),
@@ -77,7 +80,7 @@ bio_dat2 %>%
   mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
                        'CNTL ' = "Control",
                        'IFERT ' = "Inorganic Fertilizer")) %>% 
-  ggplot(aes(x = as.numeric(cbio), y = wbio))+
+  ggplot(aes(x = as.numeric(cbiokg_ha), y = wbiokg_ha))+
   geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5)+
   geom_smooth(method = "lm", se = FALSE, group = 'sample')+
   stat_regline_equation(label.y = 6,label.x = 60, aes(label = ..eq.label..)) +
@@ -101,7 +104,7 @@ bio_dat2 %>%
 
 bio_dat2 %>%
   filter(ctrt %in% c("Oat")) %>% 
-  ggplot(aes(x = as.numeric(cbio), y = wbio))+
+  ggplot(aes(x = cbiokg_ha, y = wbiokg_ha))+
   geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5, alpha = 0.75)+
   geom_smooth(method = "lm", se = FALSE)+
   stat_regline_equation(label.y = 4.75,label.x = 5, aes(label = ..eq.label..)) +
@@ -126,25 +129,25 @@ bio_dat2 %>%
 
 bio_dat2 %>%
   filter(ftrt == "CNTL " & ctrt %in% c("Oat", "All Mixture", "Faba Bean Oat", "Faba Bean")) %>% 
-  ggplot(aes(x = as.numeric(cbio), y = wbio))+
+  ggplot(aes(x = cbiokg_ha, y = wbiokg_ha))+
   geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5, alpha = 0.75)+
   geom_smooth(method = "lm", se = FALSE)+
-  stat_regline_equation(label.y = 5.75,label.x = 1, aes(label = ..eq.label..)) +
-  stat_regline_equation(label.y = 5.25, label.x = 1, aes(label = ..rr.label..)) +
+  stat_regline_equation(label.y = 7,label.x = 290, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 2, label.x = 290, aes(label = ..rr.label..)) +
   stat_fit_glance(method = 'lm',
                   method.args = list(formula = formula),
                   geom = 'text',
                   aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
                   label.x = 15, label.y = 3.5, size = 3)+
-  labs(y = "wheat biomass, grams/pot",
-       x = "cover crop biomass, grams/pot")+
+  labs(y = "wheat biomass, kg per hectare",
+       x = "cover crop biomass, kg per hectare")+
   #scale_color_manual(values = mycolors)+
   #scale_color_manual(values = pnw_palette('Shuksan',9))+
   scale_fill_manual(values = pnw_palette('Shuksan2',9))+
   #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
   scale_shape_manual(values = c(21,18,23,15,22,17,24,3,4))+
   facet_wrap(.~ctrt)+
-  ylim(0,6)+
+  ylim(0,40)+
   theme_er()+
   theme(legend.position = "None")
 
@@ -168,28 +171,49 @@ bio_dat2 %>%
 #                        "CNTL " = "Control",
 #                        'IFERT ' = "Inorganic Fertilizer"))
 
-biomass = 
+biomass1 = 
   bio_dat2 %>% 
-  select(ftrt, ctrt, time, wbio, cbio) %>% 
-  group_by(ftrt, ctrt) %>% 
-  dplyr::summarise(cbio_mean = round(mean(cbio, na.rm= TRUE)),
-                   cbio_sd = round(sd(cbio, na.rm= TRUE)),
-                   wbio_mean = round(mean(wbio, na.rm= TRUE)),
-                   wbio_sd = round(sd(wbio, na.rm= TRUE))
+  select(ftrt, ctrt, time, wbiokg_ha, cbiokg_ha) %>% 
+  group_by(ftrt) %>% 
+  dplyr::summarise(cbio_mean = round(mean(cbiokg_ha, na.rm= TRUE),3),
+                   cbio_sd = round(sd(cbiokg_ha, na.rm= TRUE),3),
+                   wbio_mean = round(mean(wbiokg_ha, na.rm= TRUE),3),
+                   wbio_sd = round(sd(wbiokg_ha, na.rm= TRUE),3)
                    
   ) %>% 
   mutate(covercrop = paste(cbio_mean, "\u00b1", cbio_sd),
          wheat = paste(wbio_mean, "\u00b1", wbio_sd)
   ) %>% 
-  select(ftrt, ctrt, wheat, covercrop) %>% 
+  select(ftrt, wheat, covercrop) %>% 
   mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
                        "CNTL " = "Control",
                        'IFERT ' = "Inorganic Fertilizer"))
 
 
-biomass %>% knitr::kable() # prints a somewhat clean table in the console
+biomass1 %>% knitr::kable() # prints a somewhat clean table in the console
 
-write.csv(biomass, "biomass2.csv", row.names = FALSE)
+write.csv(biomass1, "biomassftrt.csv", row.names = FALSE)
+
+biomass2 = 
+  bio_dat2 %>% 
+  select(ftrt, ctrt, time, wbiokg_ha, cbiokg_ha) %>% 
+  group_by(ctrt) %>% 
+  dplyr::summarise(cbio_mean = round(mean(cbiokg_ha, na.rm= TRUE),3),
+                   cbio_sd = round(sd(cbiokg_ha, na.rm= TRUE)),3,
+                   wbio_mean = round(mean(wbiokg_ha, na.rm= TRUE),3),
+                   wbio_sd = round(sd(wbiokg_ha, na.rm= TRUE),3)
+                   
+  ) %>% 
+  mutate(covercrop = paste(cbio_mean, "\u00b1", cbio_sd),
+         wheat = paste(wbio_mean, "\u00b1", wbio_sd)
+  ) %>% 
+  select(ctrt, wheat, covercrop)
+  
+
+
+biomass2 %>% knitr::kable() # prints a somewhat clean table in the console
+
+write.csv(biomass2, "biomassctrt.csv", row.names = FALSE)
 
 #stats
 
@@ -344,3 +368,146 @@ summary.aov(pmn_aov)
 
 pmn_hsd <- HSD.test(pmn_aov, "ctrt")
 print(pmn_hsd)
+
+
+
+
+#SOM, wheat biomass, and cover crop biomass summary tables.
+
+bio_dat2_grouped = 
+  bio_dat2_grouped %>% 
+  dplyr::mutate(amm = as.numeric(amm),
+                nit = as.numeric(nit),
+                pmn = as.numeric(pmn),
+                pmc = as.numeric(pmc),
+                cbio = as.numeric(cbio),
+                wbio = as.numeric(wbio),
+  )
+
+SOM_sd = 
+  bio_dat2_grouped %>% 
+  select(ctrt, time, nit, amm, pmn, pmc) %>% 
+  group_by(ctrt) %>% 
+  dplyr::summarise(nit_mean = round(mean(nit, na.rm= TRUE)),
+                   nit_se = round(sd(nit, na.rm= TRUE)/sqrt(n())),
+                   amm_mean = round(mean(amm, na.rm= TRUE)),
+                   amm_se = round(sd(amm, na.rm= TRUE)/sqrt(n())),
+                   pmc_mean = round(mean(pmc, na.rm= TRUE)),
+                   pmc_se = round(sd(pmc, na.rm= TRUE)/sqrt(n())),
+                   pmn_mean = round(mean(pmn, na.rm= TRUE)),
+                   pmn_se = round(sd(pmn, na.rm= TRUE)/sqrt(n())),
+  ) 
+
+
+SOM_sd_standardized = 
+  bio_dat2_grouped %>%
+  filter_all(all_vars(!is.infinite(.)))%>% 
+  select(ctrt, time, nit_percbio, amm_percbio, pmn_percbio, pmc_percbio) %>% 
+  group_by(ctrt) %>% 
+  dplyr::summarise(nit_mean = round(mean(nit_percbio, na.rm= TRUE)),
+                   nit_se = round(sd(nit_percbio, na.rm= TRUE)/sqrt(n())),
+                   amm_mean = round(mean(amm_percbio, na.rm= TRUE)),
+                   amm_se = round(sd(amm_percbio, na.rm= TRUE)/sqrt(n())),
+                   pmc_mean = round(mean(pmc_percbio, na.rm= TRUE)),
+                   pmc_se = round(sd(pmc_percbio, na.rm= TRUE)/sqrt(n())),
+                   pmn_mean = round(mean(pmn_percbio, na.rm= TRUE)),
+                   pmn_se = round(sd(pmn_percbio, na.rm= TRUE)/sqrt(n())),
+  ) 
+
+ 
+
+biomass = 
+  bio_dat2_grouped %>% 
+  select(ctrt, time, wbio, cbio) %>% 
+  group_by(ctrt) %>% 
+  dplyr::summarise(wbio_mean = round(mean(wbio, na.rm= TRUE)),
+                   wbio_se = round(sd(wbio, na.rm= TRUE)/sqrt(n())),
+                   cbio_mean = round(mean(cbio, na.rm= TRUE)),
+                   cbio_se = round(sd(cbio, na.rm= TRUE)/sqrt(n()))
+  ) %>% 
+  mutate(wheat = paste(wbio_mean, "\u00b1", wbio_se),
+         covercrop = paste(cbio_mean, "\u00b1", cbio_se)) 
+# select(ctrt, wheat, covercrop) %>% 
+# mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+#                      "CNTL " = "Control",
+#                      'IFERT ' = "Inorganic Fertilizer"))
+
+# this will also add " NA" for the blank cells
+# use str_remove to remove the string
+
+biomass %>% knitr::kable() # prints a somewhat clean table in the console
+
+write.csv(biomass, "biomass.csv", row.names = FALSE)
+
+
+
+
+a = SOM_sd %>%
+  #filter(ftrt == "CNTL ") %>% 
+  # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+  #                      "CNTL " = "Control",
+  #                      'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = nit_mean, fill = ctrt), 
+           position = "stack", stat= "identity", alpha = 0.7, color = "gray50")+
+  geom_errorbar(aes(x = ctrt, ymin = nit_mean - nit_se, ymax = nit_mean + nit_se), width = .2,
+                position = position_dodge(.9), color = 'gray50')+
+  labs(y = "Nitrate, mg/kg",
+       x = " ")+
+  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  #facet_wrap(.~ftrt)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
+
+#########standardized
+
+#SOM, wheat biomass, and cover crop biomass summary tables.
+
+
+
+
+
+biomass = 
+  bio_dat2_grouped %>% 
+  select(ctrt, time, wbio, cbio) %>% 
+  group_by(ctrt) %>% 
+  dplyr::summarise(wbio_mean = round(mean(wbio, na.rm= TRUE)),
+                   wbio_se = round(sd(wbio, na.rm= TRUE)/sqrt(n())),
+                   cbio_mean = round(mean(cbio, na.rm= TRUE)),
+                   cbio_se = round(sd(cbio, na.rm= TRUE)/sqrt(n()))
+  ) %>% 
+  mutate(wheat = paste(wbio_mean, "\u00b1", wbio_se),
+         covercrop = paste(cbio_mean, "\u00b1", cbio_se)) 
+# select(ctrt, wheat, covercrop) %>% 
+# mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+#                      "CNTL " = "Control",
+#                      'IFERT ' = "Inorganic Fertilizer"))
+
+# this will also add " NA" for the blank cells
+# use str_remove to remove the string
+
+biomass %>% knitr::kable() # prints a somewhat clean table in the console
+
+write.csv(biomass, "biomass.csv", row.names = FALSE)
+
+
+
+
+b = SOM_sd_standardized %>%
+  #filter(ftrt == "CNTL ") %>% 
+  # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+  #                      "CNTL " = "Control",
+  #                      'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = nit_mean, fill = ctrt), 
+           position = "stack", stat= "identity", alpha = 0.7, color = "gray50")+
+  geom_errorbar(aes(x = ctrt, ymin = nit_mean - nit_se, ymax = nit_mean + nit_se), width = .2,
+                position = position_dodge(.9), color = 'gray50')+
+  labs(y = "Nitrate standardized, mg/kg",
+       x = " ")+
+  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  #facet_wrap(.~ftrt)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90))
+
