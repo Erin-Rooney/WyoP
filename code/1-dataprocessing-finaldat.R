@@ -38,8 +38,19 @@ bio_dat2 =
                                         'Faba Bean Oat', "Faba Bean", 'Radish Oat', 
                                         "Radish", 'Oat', 'Fallow'))) %>% 
   dplyr::mutate(wbio = as.numeric(wbio),
-                cbio = as.numeric(cbio)) %>% 
-  dplyr::mutate(wbio_per_cbio = (wbio/cbio))
+                cbio = as.numeric(cbio), 
+                amm = as.numeric(amm),
+                nit = as.numeric(nit), 
+                pmn = as.numeric(pmn),
+                pmc = as.numeric(pmc), 
+                amm_percbio = (amm/cbio),
+                nit_percbio = (nit/cbio),
+                pmn_percbio = (pmn/cbio),
+                pmc_percbio = (pmc/cbio)) %>% 
+  dplyr::mutate(wbio_per_cbio = (wbio/cbio),
+                wbiokg_ha = (wbio * 7.29),
+                cbiokg_ha = (cbio *7.29)) 
+  
 
 
 #group to separate cover crops and fallow
@@ -47,6 +58,7 @@ bio_dat2 =
 bio_dat2_grouped =
   bio_dat2 %>%
   dplyr::mutate(grouping = if_else(ctrt == "Fallow", "Fallow", "Cover Crop")) 
+  
 
 
 #means, no reason
@@ -54,10 +66,13 @@ bio_dat2_grouped =
 biomass_means = 
   bio_dat2 %>% 
   group_by(ctrt) %>% 
-  dplyr::mutate(wbio = as.numeric(wbio),
-                cbio = as.numeric(cbio)) %>% 
-  dplyr::summarise(wbio_mean = round(mean(wbio)),
-                   cbio_mean = round(mean(cbio, na.rm = TRUE)))
+  # dplyr::mutate(wbio = as.numeric(wbio),
+  #               cbio = as.numeric(cbio)) %>% 
+  # dplyr::summarise(wbio_mean = round(mean(wbio)),
+  #                  cbio_mean = round(mean(cbio, na.rm = TRUE))) %>% 
+  dplyr::summarise(wbio_mean_kg_ha = round(mean(wbiokg_ha)),
+                   cbio_mean_kg_ha = round(mean(cbiokg_ha, na.rm = TRUE)))
+  
 
 
 # bio_dat2_longer = 
@@ -123,13 +138,13 @@ gh_dat2 =
 # ggscatter plots
 
 bio_dat2 %>% 
-  ggplot(aes(x = cbio, y = wbio))+
+  ggplot(aes(x = cbio_mean_kg_ha, y = wbio_mean_kg_ha))+
   geom_point()+
   geom_smooth(method = "lm", se = FALSE)+
-  ylim(0,4.5)+
-  geom_text(x = 15, y = 4.5, label = eq(bio_dat2$cbio,bio_dat2$wbio), parse = TRUE)+
-  labs(y = "wheat biomass, grams/pot",
-       x = "cover crop biomass, grams/pot")+
+  #ylim(0,4.5)+
+  geom_text(x = 15, y = 4.5, label = eq(bio_dat2$cbio_mean_kg_ha,bio_dat2$wbio_mean_kg_ha), parse = TRUE)+
+  labs(y = "wheat biomass, kg per hectare",
+       x = "cover crop biomass, kg per hectare")+
   theme_er()+
   NULL
 
@@ -139,7 +154,7 @@ bio_dat2 %>%
   mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
                        'CNTL ' = "Control",
                        'IFERT ' = "Inorganic Fertilizer")) %>% 
-  ggplot(aes(x = as.numeric(cbio), y = wbio))+
+  ggplot(aes(x = cbiokg_ha, y = wbiokg_ha))+
   geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5)+
   geom_smooth(method = "lm", se = FALSE, group = 'sample')+
   stat_regline_equation(label.y = 6,label.x = 60, aes(label = ..eq.label..)) +
@@ -149,8 +164,8 @@ bio_dat2 %>%
                geom = 'text',
               aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
              label.x = 15, label.y = 3.5, size = 3)+
-  labs(y = "wheat biomass, grams/pot",
-       x = "cover crop biomass, grams/pot")+
+  labs(y = "wheat biomass, kg per hectare",
+       x = "cover crop biomass, kg per hectare")+
   #scale_color_manual(values = mycolors)+
   #scale_color_manual(values = pnw_palette('Shuksan',9))+
   scale_fill_manual(values = pnw_palette('Shuksan2',9))+
@@ -162,20 +177,20 @@ bio_dat2 %>%
 
   
 
-a = bio_dat2 %>%
+bio_dat2 %>%
   filter(ftrt == 'CNTL ' & ctrt == "Faba Bean") %>% 
-  ggplot(aes(x = as.numeric(cbio), y = wbio))+
+  ggplot(aes(x = cbiokg_ha, y = wbiokg_ha))+
   geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5, alpha = 0.75)+
   geom_smooth(method = "lm", se = FALSE, group = 'sample')+
-  stat_regline_equation(label.y = 4.75,label.x = 5, aes(label = ..eq.label..)) +
-  stat_regline_equation(label.y = 4.25, label.x = 5, aes(label = ..rr.label..)) +
+  stat_regline_equation(label.y = 20.25,label.x = 5, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 19, label.x = 5, aes(label = ..rr.label..)) +
   stat_fit_glance(method = 'lm',
                   method.args = list(formula = formula),
                   geom = 'text',
                   aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
                   label.x = 15, label.y = 3.5, size = 3)+
-  labs(y = "wheat biomass, grams/pot",
-       x = "cover crop biomass, grams/pot")+
+  labs(y = "wheat biomass, kg per hectare",
+       x = "cover crop biomass, kg per hectare")+
   #scale_color_manual(values = mycolors)+
   #scale_color_manual(values = pnw_palette('Shuksan',9))+
   #scale_fill_manual(values = pnw_palette('Shuksan2',9))+
@@ -185,13 +200,13 @@ a = bio_dat2 %>%
   theme_er()+
   theme(legend.position = "None")
 
-b = bio_dat2 %>%
+bio_dat2 %>%
   filter(ftrt == 'CNTL ' & ctrt == c("Faba Bean Oat")) %>% 
-  ggplot(aes(x = as.numeric(cbio), y = wbio))+
+  ggplot(aes(x = cbiokg_ha, y = wbiokg_ha))+
   geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5, alpha = 0.75)+
   geom_smooth(method = "lm", se = FALSE, group = 'sample')+
-  stat_regline_equation(label.y = 4.75,label.x = 5, aes(label = ..eq.label..)) +
-  stat_regline_equation(label.y = 4.25, label.x = 5, aes(label = ..rr.label..)) +
+  stat_regline_equation(label.y = 20.25,label.x = 5, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 19, label.x = 5, aes(label = ..rr.label..)) +
   stat_fit_glance(method = 'lm',
                   method.args = list(formula = formula),
                   geom = 'text',
@@ -257,18 +272,18 @@ bio_dat2 %>%
 
 bio_dat2 %>%
   filter(ctrt == c("All Mixture", "Faba Bean Oat", "Faba Bean", "Oat")) %>% 
-  ggplot(aes(x = as.numeric(cbio), y = wbio))+
+  ggplot(aes(x = cbiokg_ha, y = wbiokg_ha))+
   geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5, alpha = 0.75)+
   geom_smooth(method = "lm", se = FALSE, group = 'sample')+
-  stat_regline_equation(label.y = 4.75,label.x = 5, aes(label = ..eq.label..)) +
-  stat_regline_equation(label.y = 4.25, label.x = 5, aes(label = ..rr.label..)) +
+  stat_regline_equation(label.y = 35,label.x = 300, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 30, label.x = 300, aes(label = ..rr.label..)) +
   stat_fit_glance(method = 'lm',
                   method.args = list(formula = formula),
                   geom = 'text',
                   aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
                   label.x = 15, label.y = 3.5, size = 3)+
-  labs(y = "wheat biomass, grams/pot",
-       x = "cover crop biomass, grams/pot")+
+  labs(y = "wheat biomass, kg per hectare",
+       x = "cover crop biomass, kg per hectare")+
   #scale_color_manual(values = mycolors)+
   #scale_color_manual(values = pnw_palette('Shuksan',9))+
   scale_fill_manual(values = pnw_palette('Shuksan2',9))+
@@ -572,8 +587,8 @@ bio_dat2_grouped =
 
 SOM_sd = 
 bio_dat2_grouped %>% 
-  select(ftrt, ctrt, time, nit, amm, pmn, pmc) %>% 
-  group_by(ftrt, ctrt) %>% 
+  select(ctrt, time, nit, amm, pmn, pmc) %>% 
+  group_by(ctrt) %>% 
   dplyr::summarise(nit_mean = round(mean(nit, na.rm= TRUE)),
             nit_se = round(sd(nit, na.rm= TRUE)/sqrt(n())),
             amm_mean = round(mean(amm, na.rm= TRUE)),
@@ -585,21 +600,36 @@ bio_dat2_grouped %>%
             ) 
 
 
+SOM_sd_standardized = 
+  bio_dat2_grouped %>% 
+  select(ctrt, time, nit, amm, pmn, pmc) %>% 
+  group_by(ctrt) %>% 
+  dplyr::summarise(nit_mean = round(mean(nit, na.rm= TRUE)),
+                   nit_se = round(sd(nit, na.rm= TRUE)/sqrt(n())),
+                   amm_mean = round(mean(amm, na.rm= TRUE)),
+                   amm_se = round(sd(amm, na.rm= TRUE)/sqrt(n())),
+                   pmc_mean = round(mean(pmc, na.rm= TRUE)),
+                   pmc_se = round(sd(pmc, na.rm= TRUE)/sqrt(n())),
+                   pmn_mean = round(mean(pmn, na.rm= TRUE)),
+                   pmn_se = round(sd(pmn, na.rm= TRUE)/sqrt(n())),
+  ) 
+
+
 biomass = 
   bio_dat2_grouped %>% 
-  select(ftrt, ctrt, time, wbio, cbio) %>% 
-  group_by(ftrt, ctrt) %>% 
+  select(ctrt, time, wbio, cbio) %>% 
+  group_by(ctrt) %>% 
   dplyr::summarise(wbio_mean = round(mean(wbio, na.rm= TRUE)),
                    wbio_se = round(sd(wbio, na.rm= TRUE)/sqrt(n())),
                    cbio_mean = round(mean(cbio, na.rm= TRUE)),
                    cbio_se = round(sd(cbio, na.rm= TRUE)/sqrt(n()))
                    ) %>% 
   mutate(wheat = paste(wbio_mean, "\u00b1", wbio_se),
-         covercrop = paste(cbio_mean, "\u00b1", cbio_se)) %>% 
-  select(ftrt, ctrt, wheat, covercrop) %>% 
-  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
-                       "CNTL " = "Control",
-                       'IFERT ' = "Inorganic Fertilizer"))
+         covercrop = paste(cbio_mean, "\u00b1", cbio_se)) 
+  # select(ctrt, wheat, covercrop) %>% 
+  # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+  #                      "CNTL " = "Control",
+  #                      'IFERT ' = "Inorganic Fertilizer"))
   
          # this will also add " NA" for the blank cells
          # use str_remove to remove the string
@@ -612,9 +642,10 @@ write.csv(biomass, "biomass.csv", row.names = FALSE)
 
 
 SOM_sd %>%
-  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
-                       "CNTL " = "Control",
-                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  #filter(ftrt == "CNTL ") %>% 
+  # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+  #                      "CNTL " = "Control",
+  #                      'IFERT ' = "Inorganic Fertilizer")) %>% 
   ggplot()+
   geom_bar(aes(x = ctrt, y = nit_mean, fill = ctrt), 
            position = "stack", stat= "identity", alpha = 0.7, color = "gray50")+
@@ -623,7 +654,7 @@ SOM_sd %>%
   labs(y = "Nitrate, mg/kg",
        x = " ")+
   scale_fill_manual(values = pnw_palette('Sunset',9))+
-  facet_wrap(.~ftrt)+
+  #facet_wrap(.~ftrt)+
   theme_er()+
   theme(axis.text.x.bottom = element_text(angle = 90))
 
