@@ -443,7 +443,7 @@ write.csv(biomass, "biomass.csv", row.names = FALSE)
 
 
 a = SOM_sd %>%
-  #filter(ftrt == "CNTL ") %>% 
+  filter(ctrt != "Fallow") %>% 
   # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
   #                      "CNTL " = "Control",
   #                      'IFERT ' = "Inorganic Fertilizer")) %>% 
@@ -511,3 +511,8 @@ b = SOM_sd_standardized %>%
   theme_er()+
   theme(axis.text.x.bottom = element_text(angle = 90))
 
+library(patchwork)
+library(cowplot)
+
+a+b+ #combines the two plots
+  plot_layout(guides = "collect") # sets a common legend
