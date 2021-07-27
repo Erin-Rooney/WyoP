@@ -255,6 +255,9 @@ summary.aov(amm2_aov)
 nit2_aov <- aov(nit_percbio ~ ctrt, data = bio_dat3)
 summary.aov(nit2_aov)
 
+nit2_hsd <- HSD.test(nit2_aov, "ctrt")
+print(nit2_hsd)
+
 
 pmc2_aov <- aov(pmc_percbio ~ ctrt, data = bio_dat3)
 summary.aov(pmc2_aov)
@@ -331,7 +334,8 @@ bio_dat2_grouped_filtered =
 pmc_aov <- aov(pmc ~ ctrt, data = bio_dat2_grouped_filtered)
 summary.aov(pmc_aov)
 
-
+pmc_hsd <- HSD.test(pmc_aov, "ctrt")
+print(pmc_hsd)
 
 bio_dat2_grouped_filtered =
   bio_dat2_grouped %>% 
@@ -340,6 +344,9 @@ bio_dat2_grouped_filtered =
 nit_aov <- aov(nit ~ ctrt, data = bio_dat2_grouped_filtered)
 summary.aov(nit_aov)
 
+nit_hsd <- HSD.test(nit_aov, "ctrt")
+print(nit_hsd)
+
 bio_dat2_grouped_filtered =
   bio_dat2_grouped %>% 
   filter(amm != '.')
@@ -347,6 +354,8 @@ bio_dat2_grouped_filtered =
 amm_aov <- aov(amm ~ ctrt, data = bio_dat2_grouped_filtered)
 summary.aov(amm_aov)
 
+amm_hsd <- HSD.test(amm_aov, "ctrt")
+print(amm_hsd)
 
 bio_dat2_grouped_filtered_cntl =
   bio_dat2_grouped %>% 
@@ -386,12 +395,12 @@ bio_dat2_grouped =
 
 SOM_sd = 
   bio_dat2_grouped %>% 
-  select(ctrt, time, nit, amm, pmn, pmc) %>% 
+  select(ctrt, nit, amm, pmn, pmc) %>% 
   group_by(ctrt) %>% 
-  dplyr::summarise(nit_mean = round(mean(nit, na.rm= TRUE)),
+  dplyr::summarise(amm_mean = round(mean(amm, na.rm= TRUE)),
+                   amm_se = round(sd(amm, na.rm= TRUE)/sqrt(n()),3),
+                   nit_mean = round(mean(nit, na.rm= TRUE)),
                    nit_se = round(sd(nit, na.rm= TRUE)/sqrt(n())),
-                   amm_mean = round(mean(amm, na.rm= TRUE)),
-                   amm_se = round(sd(amm, na.rm= TRUE)/sqrt(n())),
                    pmc_mean = round(mean(pmc, na.rm= TRUE)),
                    pmc_se = round(sd(pmc, na.rm= TRUE)/sqrt(n())),
                    pmn_mean = round(mean(pmn, na.rm= TRUE)),
@@ -443,21 +452,117 @@ write.csv(biomass, "biomass.csv", row.names = FALSE)
 
 
 a = SOM_sd %>%
-  filter(ctrt != "Fallow") %>% 
+  #filter(ctrt != "Fallow") %>% 
   # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
   #                      "CNTL " = "Control",
   #                      'IFERT ' = "Inorganic Fertilizer")) %>% 
   ggplot()+
   geom_bar(aes(x = ctrt, y = nit_mean, fill = ctrt), 
-           position = "stack", stat= "identity", alpha = 0.7, color = "gray50")+
+           position = "stack", stat= "identity", alpha = 0.4, color = "gray20")+
   geom_errorbar(aes(x = ctrt, ymin = nit_mean - nit_se, ymax = nit_mean + nit_se), width = .2,
                 position = position_dodge(.9), color = 'gray50')+
   labs(y = "Nitrate, mg/kg",
        x = " ")+
-  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  scale_fill_manual(values = pnw_palette('Lake',9))+
   #facet_wrap(.~ftrt)+
   theme_er()+
-  theme(axis.text.x.bottom = element_text(angle = 90))
+  theme(axis.text.x.bottom = element_text(angle = 90),
+        legend.position = "none")+
+  annotate("text", x = 1, y = 32, label = "bc")+
+  annotate("text", x = 2, y = 29, label = "bc")+
+  annotate("text", x = 3, y = 24, label = "c")+
+  annotate("text", x = 4, y = 49, label = "a")+
+  annotate("text", x = 5, y = 42, label = "ab")+
+  annotate("text", x = 6, y = 25, label = "bc")+
+  annotate("text", x = 7, y = 28, label = "bc")+
+  annotate("text", x = 8, y = 19, label = "c")+
+  annotate("text", x = 9, y = 30, label = "bc")
+
+
+b = SOM_sd %>%
+  #filter(ctrt != "Fallow") %>% 
+  # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+  #                      "CNTL " = "Control",
+  #                      'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = pmn_mean, fill = ctrt), 
+           position = "stack", stat= "identity", alpha = 0.4, color = "gray20")+
+  geom_errorbar(aes(x = ctrt, ymin = pmn_mean - pmn_se, ymax = pmn_mean + pmn_se), width = .2,
+                position = position_dodge(.9), color = 'gray50')+
+  labs(y = "PMN, mg/kg",
+       x = " ")+
+  scale_fill_manual(values = pnw_palette('Lake',9))+
+  #facet_wrap(.~ftrt)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90),
+        legend.position = "none")+
+  annotate("text", x = 1, y = 20, label = "ab")+
+  annotate("text", x = 2, y = 15, label = "ab")+
+  annotate("text", x = 3, y = 17, label = "ab")+
+  annotate("text", x = 4, y = 30, label = "a")+
+  annotate("text", x = 5, y = 22, label = "ab")+
+  annotate("text", x = 6, y = 23, label = "ab")+
+  annotate("text", x = 7, y = 15, label = "b")+
+  annotate("text", x = 8, y = 19, label = "ab")+
+  annotate("text", x = 9, y = 12, label = "b")+
+  NULL
+
+c = SOM_sd %>%
+  #filter(ctrt != "Fallow") %>% 
+  # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+  #                      "CNTL " = "Control",
+  #                      'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = pmc_mean, fill = ctrt), 
+           position = "stack", stat= "identity", alpha = 0.4, color = "gray20")+
+  geom_errorbar(aes(x = ctrt, ymin = pmc_mean - pmc_se, ymax = pmc_mean + pmc_se), width = .2,
+                position = position_dodge(.9), color = 'gray50')+
+  labs(y = "PMC, mg/kg",
+       x = " ")+
+  scale_fill_manual(values = pnw_palette('Lake', 9))+
+  #facet_wrap(.~ftrt)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90),
+        legend.position = "none")+
+  annotate("text", x = 1, y = 175, label = "a")+
+  annotate("text", x = 2, y = 160, label = "ab")+
+  annotate("text", x = 3, y = 140, label = "ab")+
+  annotate("text", x = 4, y = 144, label = "ab")+
+  annotate("text", x = 5, y = 140, label = "ab")+
+  annotate("text", x = 6, y = 130, label = "ab")+
+  annotate("text", x = 7, y = 110, label = "b")+
+  annotate("text", x = 8, y = 125, label = "ab")+
+  annotate("text", x = 9, y = 100, label = "b")+
+  NULL
+
+
+d = SOM_sd %>%
+  #filter(ctrt != "Fallow") %>% 
+  # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+  #                      "CNTL " = "Control",
+  #                      'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = amm_mean, fill = ctrt), 
+           position = "stack", stat= "identity", alpha = 0.4, color = "gray20")+
+  geom_errorbar(aes(x = ctrt, ymin = amm_mean - amm_se, ymax = amm_mean + amm_se), width = .2,
+                position = position_dodge(.9), color = 'gray50')+
+  labs(y = "Ammonium, mg/kg",
+       x = " ")+
+  scale_fill_manual(values = pnw_palette('Lake', 9))+
+  #facet_wrap(.~ftrt)+
+  theme_er()+
+  theme(axis.text.x.bottom = element_text(angle = 90),
+        legend.position = "none")+
+  # annotate("text", x = 1, y = 4, label = "a")+
+  # annotate("text", x = 2, y = 5, label = "a")+
+  # annotate("text", x = 3, y = 4, label = "a")+
+  # annotate("text", x = 4, y = 5, label = "a")+
+  # annotate("text", x = 5, y = 5, label = "a")+
+  # annotate("text", x = 6, y = 4, label = "a")+
+  # annotate("text", x = 7, y = 4, label = "a")+
+  # annotate("text", x = 8, y = 4, label = "a")+
+  # annotate("text", x = 9, y = 4, label = "a")+
+  NULL
 
 
 #########standardized
@@ -494,7 +599,7 @@ write.csv(biomass, "biomass.csv", row.names = FALSE)
 
 
 
-b = SOM_sd_standardized %>%
+SOM_sd_standardized %>%
   #filter(ftrt == "CNTL ") %>% 
   # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
   #                      "CNTL " = "Control",
@@ -506,7 +611,7 @@ b = SOM_sd_standardized %>%
                 position = position_dodge(.9), color = 'gray50')+
   labs(y = "Nitrate standardized, mg/kg",
        x = " ")+
-  scale_fill_manual(values = pnw_palette('Sunset',9))+
+  scale_fill_manual(values = pnw_palette('Shuksan2',9))+
   #facet_wrap(.~ftrt)+
   theme_er()+
   theme(axis.text.x.bottom = element_text(angle = 90))
@@ -514,5 +619,5 @@ b = SOM_sd_standardized %>%
 library(patchwork)
 library(cowplot)
 
-a+b+ #combines the two plots
-  plot_layout(guides = "collect") # sets a common legend
+a+b+c+d #combines the two plots
+  #plot_layout(guides = "collect") # sets a common legend
