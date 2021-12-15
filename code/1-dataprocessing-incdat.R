@@ -48,15 +48,65 @@ incub_dat_enzymeslonger %>%
   theme(legend.position = "bottom")
 
 
-incub_dat2 %>% 
-  filter(time != "Baseline" & ctrt == "Control") %>% 
+phos = incub_dat2 %>% 
+  #filter(time != "Baseline" & ctrt == "Control") %>%
+  filter(time != "Baseline") %>% 
   ggplot() +
-  geom_boxplot(aes(x = ftrt, y = phos, fill = time), alpha = 0.7) +
+  geom_boxplot(aes(x = ftrt, y = phos), alpha = 0.7) +
   labs(x = "", y = "Phosphatase concentrations in Fallow")+
   scale_fill_manual(values = wes_palette('Royal1',3))+
   #facet_grid(ftrt~.)+
   theme_er()+
   theme(legend.position = "bottom")
+
+bg = incub_dat2 %>% 
+  #filter(time != "Baseline" & ctrt == "Control") %>% 
+  filter(time != "Baseline") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = ftrt, y = bg), alpha = 0.7) +
+  labs(x = "", y = "ß-glucosidase concentrations in Fallow")+
+  scale_fill_manual(values = wes_palette('Royal1',3))+
+  #facet_grid(ftrt~.)+
+  theme_er()+
+  theme(legend.position = "bottom")
+
+lap = incub_dat2 %>% 
+  #filter(time != "Baseline" & ctrt == "Control") %>% 
+  filter(time != "Baseline") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = ftrt, y = lap), alpha = 0.7) +
+  labs(x = "", y = "leucine aminopeptidase concentrations in Fallow")+
+  scale_fill_manual(values = wes_palette('Royal1',3))+
+  #facet_grid(ftrt~.)+
+  theme_er()+
+  theme(legend.position = "bottom")
+
+
+
+incub_dat_enzymeslonger %>% 
+  # group_by(ctrt, ftrt, time, enzymes_type) %>%
+  # dplyr::summarise(abundance = round(mean(enzymes_percbio), 2),
+  #                  se = round(sd(enzymes_percbio)/sqrt(n()),2)) %>% 
+  mutate(enzymes_type = recode(enzymes_type, "phos_percbio" = "phos",
+                               'bg_percbio' = "bg",
+                               'nag_percbio' = "nag",
+                               'ag_percbio' = "ag",
+                               'lap_percbio' = "lap",
+                               'abts_percbio' = "abts")) %>% 
+  #filter(time != "Baseline" & ctrt == "Control") %>%
+  filter(time != "Baseline") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = enzymes_type, y = enzymes_percbio, fill = ftrt), alpha = 0.7) +
+  labs(x = "", y = "Enzyme concentrations per gram of cover crop biomass")+
+  scale_fill_manual(values = wes_palette('Royal1'))+
+  #facet_grid(ftrt~.)+
+  theme_er()+
+  theme(legend.position = "bottom")
+
+library(cowplot)
+library(patchwork)
+
+phos + bg + lap + plot_layout(guides = "collect")
 
 
 incub_dat_enzymeslonger %>% 

@@ -103,7 +103,7 @@ bio_dat2 %>%
 #
 
 bio_dat2 %>%
-  filter(ctrt %in% c("Oat")) %>% 
+  filter(ctrt %in% c("All Mixture")) %>% 
   ggplot(aes(x = cbiokg_ha, y = wbiokg_ha))+
   geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5, alpha = 0.75)+
   geom_smooth(method = "lm", se = FALSE)+
@@ -128,7 +128,33 @@ bio_dat2 %>%
 #
 
 bio_dat2 %>%
-  filter(ftrt == "CNTL " & ctrt %in% c("Oat", "All Mixture", "Faba Bean Oat", "Faba Bean")) %>% 
+  filter(ftrt %in% "CNTL " & ctrt %in% c("Oat", "All Mixture", "Faba Bean Oat", "Faba Bean")) %>% 
+  #filter(ftrt == "CNTL ") %>% 
+  ggplot(aes(x = cbiokg_ha, y = wbiokg_ha))+
+  geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5, alpha = 0.75)+
+  geom_smooth(method = "lm", se = FALSE)+
+  stat_regline_equation(label.y = 7,label.x = 290, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 2, label.x = 290, aes(label = ..rr.label..)) +
+  stat_fit_glance(method = 'lm',
+                  method.args = list(formula = formula),
+                  geom = 'text',
+                  aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+                  label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "wheat biomass, kg per hectare",
+       x = "cover crop biomass, kg per hectare")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Shuksan2',9))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,18,23,15,22,17,24,3,4))+
+  facet_wrap(.~ctrt)+
+  ylim(0,40)+
+  theme_er()+
+  theme(legend.position = "None")
+
+bio_dat2 %>%
+  #filter(ftrt == "CNTL " & ctrt %in% c("Oat", "All Mixture", "Faba Bean Oat", "Faba Bean")) %>% 
+  filter(ftrt %in% "CNTL ") %>% 
   ggplot(aes(x = cbiokg_ha, y = wbiokg_ha))+
   geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5, alpha = 0.75)+
   geom_smooth(method = "lm", se = FALSE)+
