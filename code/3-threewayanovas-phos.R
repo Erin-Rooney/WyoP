@@ -296,6 +296,47 @@ pall2 %>%
   theme(legend.position = "bottom")+
   NULL
 
+######
+#new ggplot figs Aug 25 2022
+
+pall_longer =
+  pall2 %>% 
+  select(time, ctrt, ftrt, amac, porg, unavp) %>% 
+  na.omit() %>% 
+  #is this where I need to summarize? pivot longer then pivot wider again?
+  pivot_longer(-c(time, ctrt, ftrt), 
+               names_to = 'phosphorus_pool', values_to = 'concentration') %>% 
+  group_by(ftrt, ctrt, phosphorus_pool) %>%
+  dplyr::summarise(p_concentration = round(mean(concentration), 2),
+                   se = round(sd(concentration)/sqrt(n()),2)) %>% 
+  mutate(ctrt = factor(ctrt, levels = c('All Mixture', 'Buckwheat Oat', 'Buckwheat', 
+                                        'Faba Bean Oat', "Faba Bean", 'Radish Oat', 
+                                        "Radish", 'Oat', 'Fallow'))) %>% 
+  mutate(phosphorus_pool = recode(phosphorus_pool, "amac" = 'reserve P',
+                                  "porg" = "organic P",
+                                  "unavp" = "fixed P")) %>% 
+  mutate(phosphorus_pool = factor(phosphorus_pool, levels = c('organic P', 'reserve P', 'fixed P')))
+
+#p concentrations are absolute 
+
+P_pools_fig =
+  pall_longer %>%
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = p_concentration, fill = ctrt), alpha = 0.5, stat = 'identity', position = "dodge", color = "black")+
+  geom_errorbar(aes(x = ctrt, ymin = p_concentration - se, ymax = p_concentration + se), 
+                width = .2, position = position_dodge(.9), color = 'black')+
+  labs(y = "P concentration, mg/kg", x = "")+
+  scale_fill_manual(values = pnw_palette('Lake',9))+
+  facet_grid(phosphorus_pool~ftrt, scales = 'free_y')+
+  theme_er()+
+  theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  NULL
+  
+ggsave("output/phos_pools_fig.tiff", plot = P_pools_fig, height = 6, width = 9)
+
+
+
+
 #
 
 allmix = 

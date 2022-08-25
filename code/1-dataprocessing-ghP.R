@@ -184,7 +184,7 @@ pall2 %>%
 
 pall2 %>% 
   ggplot()+
-  geom_boxplot(aes(x = as.character(time), y = as.numeric(pbic_per_cbio), group = time, fill = ftrt), alpha = 0.5)+
+  geom_boxplot(aes(x = as.character(time), y = as.numeric(pbic_percbio), group = time, fill = ftrt), alpha = 0.5)+
   facet_grid(ftrt~ctrt)+
   labs(x = "Rotation", y = "Available P/gram cc biomass")+
   scale_fill_manual(values = wes_palette('Darjeeling1',3))+

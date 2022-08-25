@@ -133,7 +133,11 @@ ph_dat_grouped =
 
 bio_dat2_grouped =
   bio_dat2 %>%
-  dplyr::mutate(grouping = if_else(ctrt == "Fallow", "Fallow", "Cover Crop")) 
+  group_by(ctrt) %>% 
+  dplyr::summarise(wbio = round(mean(wbiokg_ha), 2),
+                   cbio = round(mean(cbiokg_ha), 2)) %>% 
+  dplyr::mutate(grouping = "yes")
+  #dplyr::mutate(grouping = if_else(ctrt == "Fallow", "Fallow", "Cover Crop")) 
 
 
 #ggplots-------
@@ -235,17 +239,22 @@ bio_dat2_grouped %>%
 
 #
 
+####
+
+#wheat bio vs cc bio August 25 2022
+#kg per hectare
+
 allcc_bio = 
   bio_dat2_grouped %>%
-  filter(ctrt != 'Fallow') %>% 
-  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
-                       'CNTL ' = "Control",
-                       'IFERT ' = "Inorganic Fertilizer")) %>% 
-  ggplot(aes(x = as.numeric(cbiokg_ha), y = wbiokg_ha))+
+  # filter(ctrt != 'Fallow' & ftrt != 'IFERT') %>% 
+  # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+  #                      'CNTL ' = "Control",
+  #                      'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot(aes(x = as.numeric(cbio), y = wbio))+
   geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.7)+
   geom_smooth(method = "lm", se = FALSE, group = 'sample')+
-  stat_regline_equation(label.y = 50,label.x = 500, aes(label = ..eq.label..)) +
-  stat_regline_equation(label.y = 45, label.x = 500, aes(label = ..rr.label..)) +
+  stat_regline_equation(label.y = 21,label.x = 25, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 20, label.x = 25, aes(label = ..rr.label..)) +
   stat_fit_glance(method = 'lm',
                   method.args = list(formula = formula),
                   geom = 'text',
@@ -253,6 +262,7 @@ allcc_bio =
                   label.x = 15, label.y = 3.5, size = 4)+
   labs(y = "wheat biomass, kg/ha",
        x = "cover crop biomass, kg/ha")+
+  ylim(0,25)+
   #scale_color_manual(values = mycolors)+
   #scale_color_manual(values = pnw_palette('Shuksan',9))+
   scale_fill_manual(values = pnw_palette('Shuksan2',9))+
@@ -262,7 +272,7 @@ allcc_bio =
   theme_er()+
   theme(legend.position = "NONE")
 
-ggsave("output/allccbio.tiff", plot = allcc_bio, height = 4, width = 5)
+ggsave("output/allccbio.tiff", plot = allcc_bio, height = 3.75, width = 5)
 
 #
 
@@ -361,6 +371,8 @@ bio_dat2 %>%
 #                        "CNTL " = "Control",
 #                        'IFERT ' = "Inorganic Fertilizer"))
 
+#group by fertility treatment summary table for biomass
+
 biomass1 = 
   bio_dat2 %>% 
   select(ftrt, ctrt, time, wbiokg_ha, cbiokg_ha) %>% 
@@ -379,10 +391,12 @@ biomass1 =
                        "CNTL " = "Control",
                        'IFERT ' = "Inorganic Fertilizer"))
 
-
 biomass1 %>% knitr::kable() # prints a somewhat clean table in the console
 
 write.csv(biomass1, "biomassftrt.csv", row.names = FALSE)
+
+
+#group by ctrt summary table for biomass
 
 biomass2 = 
   bio_dat2 %>% 
