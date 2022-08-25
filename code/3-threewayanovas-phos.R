@@ -50,6 +50,7 @@ pall2 =
                 pmc_percbio = (pmc/cbio),
                 wbio_percbio = (wbio/cbio)) 
 
+
 pall3_t1 = 
   pall2 %>% 
   na.omit()
@@ -115,6 +116,10 @@ summary.aov(pbic2_aov)
 
 amac2_aov <- aov(amac ~ ftrt*ctrt*time, data = pall2)
 summary.aov(amac2_aov)
+
+amac2_hsd = HSD.test(amac2_aov, "ftrt")
+print(amac2_hsd)
+
 
 unavp2_aov <- aov(unavp ~ ftrt*ctrt*time, data = pall2)
 summary.aov(unavp2_aov)
@@ -319,8 +324,26 @@ pall_longer =
 
 #p concentrations are absolute 
 
+P_reserve_fig =
+  pall_longer %>%
+  filter(phosphorus_pool == "reserve P") %>% 
+  ggplot()+
+  geom_bar(aes(x = ftrt, y = p_concentration, fill = ftrt), alpha = 0.9, stat = 'identity', position = "dodge", color = "black")+
+  geom_errorbar(aes(x = ftrt, ymin = p_concentration - se, ymax = p_concentration + se), 
+                width = .2, position = position_dodge(.9), color = 'black')+
+  labs(y = "Reserve P, mg/kg", x = "")+
+  scale_fill_manual(values = pnw_palette('Starfish',3))+
+  facet_wrap(.~ctrt)+
+  theme_er()+
+  theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  NULL
+  
+ggsave("output/phos_reserve_fig.tiff", plot = P_reserve_fig, height = 7, width = 6)
+
+
 P_pools_fig =
   pall_longer %>%
+  filter(phosphorus_pool!= "reserve P") %>% 
   ggplot()+
   geom_bar(aes(x = ctrt, y = p_concentration, fill = ctrt), alpha = 0.5, stat = 'identity', position = "dodge", color = "black")+
   geom_errorbar(aes(x = ctrt, ymin = p_concentration - se, ymax = p_concentration + se), 
@@ -331,8 +354,10 @@ P_pools_fig =
   theme_er()+
   theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   NULL
-  
-ggsave("output/phos_pools_fig.tiff", plot = P_pools_fig, height = 6, width = 9)
+
+ggsave("output/phos_pools_fig.tiff", plot = P_pools_fig, height = 4.5, width = 8)
+
+
 
 
 
@@ -409,6 +434,29 @@ table_ftrt =
   mutate(summary = paste(abundance, "\u00b1", se)) %>% 
   dplyr::select(-abundance, -se)
 
+######
+
+#same as above but this time, time is combined for manuscript results section
+
+pall_ftrt_p_summarized_amac =
+  pall2 %>% 
+  select(ftrt, ctrt, time, pbic, amac, unavp, porg) %>% 
+  na.omit() %>% 
+  pivot_longer(-c(ftrt, ctrt, time), names_to = 'phos_pool', values_to = "abund") %>% 
+  group_by(ctrt, ftrt, phos_pool) %>%
+  dplyr::summarise(abundance = round(mean(abund), 2),
+                   se = round(sd(abund)/sqrt(n()),2))
+
+
+table_ftrt_amac = 
+  pall_ftrt_p_summarized_amac %>% 
+  mutate(summary = paste(abundance, "\u00b1", se)) %>% 
+  dplyr::select(-abundance, -se)
+
+amac_only =
+  table_ftrt_amac %>% 
+  filter(phos_pool == "amac")
+
 #fit hsd function
 
 fit_hsd = function(dat){
@@ -426,6 +474,14 @@ abund_hsd_ftrt =
   pall_ftrt_p_sample %>%
   group_by(ctrt, time, phos_pool) %>% 
   do(fit_hsd(.))
+
+#no time, amac only
+
+abund_hsd_ftrt_notime = 
+  pall_ftrt_p_sample %>%
+  group_by(ctrt, phos_pool) %>% 
+  do(fit_hsd(.)) %>% 
+  filter(phos_pool == "amac")
 
 # combine with summarized table 
 #something is going wrong and I'm winding up with phos pools all being the same
@@ -445,4 +501,4 @@ abund_table_with_hsd_ftrt =
 
 abund_table_with_hsd_ftrt %>% knitr::kable() # prints a somewhat clean table in the console
 
-write.csv(abund_table_with_hsd_ftrt, "ftrtphos_hsdstats.csv", row.names = FALSE)
+write.csv(abund_table_with_hsd_ftrt, "output/ftrtphos_hsdstats.csv", row.names = FALSE)
