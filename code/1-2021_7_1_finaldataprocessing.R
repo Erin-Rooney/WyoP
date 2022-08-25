@@ -67,7 +67,69 @@ dplyr::mutate(ftrt = as.factor(ftrt),
   select(-caco3, -inorgcarbon, -inorgcarbon_percbio, -sph2, -rate2, -seed2) %>% 
   na.omit()
 
+ph_dat =
+  final_dat %>% 
+  mutate(ctrt = recode(ctrt, "ALL " = 'All Mixture',
+                       "B" = 'Buckwheat',
+                       "BO" = 'Buckwheat Oat',
+                       "F" = "Faba Bean",
+                       "FLW" = "Fallow",
+                       "FO" = "Faba Bean Oat",
+                       "O" = 'Oat',
+                       "R" = 'Radish',
+                       "RO" = 'Radish Oat')) %>% 
+  # dplyr::mutate(species_group = case_when(grepl("All", ctrt)~"All",
+  #                                grepl("Buckwheat", ctrt)~"B",
+  #                                grepl("Faba", ctrt)~"F",
+  #                                grepl("Radish", ctrt)~"R",
+  #                                grepl("Fallow", ctrt)~"Fal")) 
+  mutate(ctrt = factor(ctrt, levels = c('All Mixture', 'Buckwheat Oat', 'Buckwheat', 
+                                        'Faba Bean Oat', "Faba Bean", 'Radish Oat', 
+                                        "Radish", 'Oat', 'Fallow'))) %>% 
+  dplyr::mutate(wbio = as.numeric(wbio),
+                cbio = as.numeric(cbio)) %>% 
+  dplyr::mutate(wbio_per_cbio = (wbio/cbio),
+                wbiokg_ha = (wbio * 7.29),
+                cbiokg_ha = (cbio * 7.29)) %>% 
+  
+  dplyr::mutate(ftrt = as.factor(ftrt),
+                ctrt = as.factor(ctrt),
+                time = as.factor(time),
+                pbic = as.numeric(pbic),
+                amac = as.numeric(amac),
+                edta = as.numeric(edta),
+                unavp = as.numeric(unavp),
+                porg = as.numeric(porg),
+                ptot = as.numeric(ptot),
+                cbio = as.numeric(cbio),
+                wbio = as.numeric(wbio),
+                caco3 = as.numeric(caco3),
+                inorgcarbon = as.numeric(inorgcarbon),
+                amm = as.numeric(amm),
+                nit = as.numeric(nit),
+                pmn = as.numeric(pmn),
+                pmc = as.numeric(pmc)
+  ) %>% 
+  dplyr::mutate(pbic_percbio  = (pbic/cbio),
+                amac_percbio = (amac/cbio),
+                unavp_percbio = (unavp/cbio),
+                porg_percbio = (porg/cbio),
+                inorgcarbon_percbio = (inorgcarbon/cbio),
+                amm_percbio = (amm/cbio),
+                nit_percbio = (nit/cbio),
+                pmn_percbio = (pmn/cbio),
+                pmc_percbio = (pmc/cbio)) %>% 
+  na.omit()
 
+ph_dat_grouped =
+  ph_dat %>% 
+  dplyr::mutate(grouping = if_else(ctrt == "Fallow", "Fallow", "Cover Crop")) %>% 
+  group_by(ftrt, ctrt) %>% 
+  dplyr::summarise(ph_mean = round(mean(sph2), 2),
+                   ph_se = round(sd(sph2)/sqrt(n()),2)) 
+
+                   
+  
 
 bio_dat2_grouped =
   bio_dat2 %>%
@@ -99,6 +161,108 @@ bio_dat2 %>%
   scale_shape_manual(values = c(21,18,23,15,22,17,24,3,4))+
   facet_grid(.~ftrt)+
   theme_er()
+
+###
+
+#pH fig
+
+ph_dat_grouped %>%
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       'CNTL ' = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot(aes(x = ctrt, y = ph_mean, fill = ftrt))+
+  geom_bar(stat= "identity", position = "dodge")+
+    labs(y = "pH")+
+  scale_fill_manual(values = pnw_palette('Shuksan2',9))+
+
+  #facet_wrap(.~ctrt)+
+  theme_er()
+
+#
+
+
+bio_dat2 %>%
+  filter(ctrt != 'Fallow') %>% 
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       'CNTL ' = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot(aes(x = as.numeric(cbiokg_ha), y = wbiokg_ha))+
+  geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5)+
+  geom_smooth(method = "lm", se = FALSE, group = 'sample')+
+  stat_regline_equation(label.y = 6,label.x = 60, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 5.5, label.x = 60, aes(label = ..rr.label..)) +
+  stat_fit_glance(method = 'lm',
+                  method.args = list(formula = formula),
+                  geom = 'text',
+                  aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+                  label.x = 15, label.y = 3.5, size = 3)+
+  labs(y = "wheat biomass, kg/ha",
+       x = "cover crop biomass, kg/ha")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Shuksan2',9))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,18,23,15,22,17,24,3,4))+
+  #facet_grid(.~ftrt)+
+  theme_er()
+#
+
+bio_dat2_grouped %>%
+  filter(ctrt != 'Fallow') %>% 
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       'CNTL ' = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot(aes(x = as.numeric(cbiokg_ha), y = wbiokg_ha))+
+  geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 5, alpha = 0.7)+
+  geom_smooth(method = "lm", se = FALSE, group = 'sample')+
+  stat_regline_equation(label.y = 50,label.x = 500, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 45, label.x = 500, aes(label = ..rr.label..)) +
+  stat_fit_glance(method = 'lm',
+                  method.args = list(formula = formula),
+                  geom = 'text',
+                  aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+                  label.x = 15, label.y = 3.5, size = 4)+
+  labs(y = "wheat biomass, kg/ha",
+       x = "cover crop biomass, kg/ha")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Shuksan2',9))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,18,23,15,22,17,24,3,4))+
+  facet_grid(.~ftrt)+
+  theme_er()+
+  theme(legend.position = "NONE")
+
+#
+
+allcc_bio = 
+  bio_dat2_grouped %>%
+  filter(ctrt != 'Fallow') %>% 
+  mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
+                       'CNTL ' = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  ggplot(aes(x = as.numeric(cbiokg_ha), y = wbiokg_ha))+
+  geom_point(aes(fill = grouping, shape = grouping), color = "black", size = 4, alpha = 0.7)+
+  geom_smooth(method = "lm", se = FALSE, group = 'sample')+
+  stat_regline_equation(label.y = 50,label.x = 500, aes(label = ..eq.label..)) +
+  stat_regline_equation(label.y = 45, label.x = 500, aes(label = ..rr.label..)) +
+  stat_fit_glance(method = 'lm',
+                  method.args = list(formula = formula),
+                  geom = 'text',
+                  aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+                  label.x = 15, label.y = 3.5, size = 4)+
+  labs(y = "wheat biomass, kg/ha",
+       x = "cover crop biomass, kg/ha")+
+  #scale_color_manual(values = mycolors)+
+  #scale_color_manual(values = pnw_palette('Shuksan',9))+
+  scale_fill_manual(values = pnw_palette('Shuksan2',9))+
+  #scale_fill_manual(values = c('#009474', "#24492e", "#d7b1c5", "#5d74a5", "#b0cbe7", "#edd746", "#dd4124", "#bf9bdd", "#d8aedd"))+
+  scale_shape_manual(values = c(21,18,23,15,22,17,24,3,4))+
+  #facet_grid(.~ftrt)+
+  theme_er()+
+  theme(legend.position = "NONE")
+
+ggsave("output/allccbio.tiff", plot = allcc_bio, height = 4, width = 5)
 
 #
 
@@ -244,13 +408,34 @@ write.csv(biomass2, "biomassctrt.csv", row.names = FALSE)
 #stats
 
 
+#wheat biomass 
 
+#effect of cover crop presence
 wbio_aov <- aov(wbio ~ grouping, data = bio_dat2_grouped)
 summary.aov(wbio_aov)
 
-
+#effect of cover crop biomass
 wbio_cbio <- lme(wbio ~ cbio, random = ~1|ctrt, data = bio_dat2_grouped)
 anova(wbio_cbio)
+
+#effect of fertility treatments
+wbio_aov <- aov(wbio ~ ftrt, data = bio_dat2_grouped)
+summary.aov(wbio_aov)
+
+#CN metrics
+
+#effect of fertility
+ammftrt_aov <- aov(amm ~ ftrt*grouping, data = bio_dat2_grouped)
+summary.aov(ammftrt_aov)
+
+nitftrt_aov <- aov(nit ~ ftrt*grouping, data = bio_dat2_grouped)
+summary.aov(nitftrt_aov)
+
+pmnftrt_aov <- aov(pmn ~ ftrt*grouping, data = bio_dat2_grouped)
+summary.aov(pmnftrt_aov)
+
+pmcftrt_aov <- aov(pmc ~ ftrt*grouping, data = bio_dat2_grouped)
+summary.aov(pmcftrt_aov)
 
 ##############################
 
@@ -291,6 +476,7 @@ summary.aov(pmc2_aov)
 pmn2_aov <- aov(pmn_percbio ~ ctrt, data = bio_dat3)
 summary.aov(pmn2_aov)
 
+
 ###################################
 
 
@@ -318,6 +504,9 @@ bio_dat2_grouped_filtered =
 pbic_aov <- aov(pbic ~ grouping, data = bio_dat2_grouped_filtered)
 summary.aov(pbic_aov)
 
+pbicftrt_aov <- aov(pbic ~ ftrt, data = bio_dat2_grouped_filtered)
+summary.aov(pbicftrt_aov)
+
 
 bio_dat2_grouped_filtered =
   bio_dat2_grouped %>% 
@@ -341,6 +530,11 @@ bio_dat2_grouped_filtered =
 unavp_aov <- aov(unavp ~ grouping, data = bio_dat2_grouped_filtered)
 summary.aov(unavp_aov)
 
+######
+#CN metrics
+
+##individual cc effect on PMN
+
 
 bio_dat2_grouped_filtered =
   bio_dat2_grouped %>% 
@@ -352,6 +546,17 @@ summary.aov(pmn_aov)
 pmn_hsd <- HSD.test(pmn_aov, "ctrt")
 print(pmn_hsd)
 
+### check cc vs fallow
+
+pmng_aov <- aov(pmn ~ grouping, data = bio_dat2_grouped_filtered)
+summary.aov(pmng_aov)
+
+pmng_hsd <- HSD.test(pmng_aov, "grouping")
+print(pmng_hsd)
+
+###
+
+#cc individual effect on PMC
 
 bio_dat2_grouped_filtered =
   bio_dat2_grouped %>% 
@@ -362,6 +567,21 @@ summary.aov(pmc_aov)
 
 pmc_hsd <- HSD.test(pmc_aov, "ctrt")
 print(pmc_hsd)
+
+####
+
+#overall cc effect vs fallow
+
+pmcg_aov <- aov(pmc ~ grouping, data = bio_dat2_grouped_filtered)
+summary.aov(pmcg_aov)
+
+pmcg_hsd <- HSD.test(pmcg_aov, "grouping")
+print(pmcg_hsd)
+
+
+
+####
+
 
 bio_dat2_grouped_filtered =
   bio_dat2_grouped %>% 
@@ -622,9 +842,67 @@ biomass %>% knitr::kable() # prints a somewhat clean table in the console
 
 write.csv(biomass, "biomass.csv", row.names = FALSE)
 
+#pH table
+
+ph_dat_groupedforstats =
+  ph_dat %>% 
+  dplyr::mutate(grouping = if_else(ctrt == "Fallow", "Fallow", "Cover Crop")) %>% 
+  group_by(ctrt) %>% 
+  dplyr::summarise(ph_mean = round(mean(sph2), 2),
+                   ph_se = round(sd(sph2)/sqrt(n()),2),
+                   inorgcarbon_mean = round(mean(inorgcarbon), 2),
+                   inorgcarbon_se = round(sd(inorgcarbon)/sqrt(n()),2)) %>% 
+  mutate(pH = paste(ph_mean, "\u00b1", ph_se),
+         inorganiccarbon = paste(inorgcarbon_mean, "\u00b1", inorgcarbon_se)) 
+
+ph_dat_groupedforstats %>% knitr::kable() # prints a somewhat clean table in the console
+
+write.csv(ph_dat_groupedforstats, "output/ph.csv", row.names = FALSE)
+
+###
+#pH stats
+
+ph_aov <- aov(sph2 ~ ftrt*ctrt, data = ph_dat)
+summary.aov(ph_aov)
+
+ph_hsd <- HSD.test(ph_aov, "ctrt")
+print(ph_hsd)
+
+inorgc_aov <- aov(inorgcarbon ~ ftrt*ctrt, data = ph_dat)
+summary.aov(inorgc_aov)
+
+inorgc_hsd <- HSD.test(inorgc_aov, "ctrt")
+print(inorgc_hsd)
+
+inorgcf_hsd <- HSD.test(inorgc_aov, "ftrt")
+print(inorgcf_hsd)
+
+###figure time
+
+ph_dat_groupedforstats %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = ph_mean, fill = ctrt), 
+           position = "stack", stat= "identity", alpha = 0.4, color = "gray20")+
+  geom_errorbar(aes(x = ctrt, ymin = ph_mean - ph_se, ymax = ph_mean + ph_se), width = .2,
+                position = position_dodge(.9), color = 'gray50')+
+  annotate("text", x = 1, y = 9, label = "c")+
+  annotate("text", x = 2, y = 9, label = "b")+
+  annotate("text", x = 3, y = 9, label = "ab")+
+  annotate("text", x = 4, y = 9, label = "b")+
+  annotate("text", x = 5, y = 9, label = "b")+
+  annotate("text", x = 6, y = 9, label = "b")+
+  annotate("text", x = 7, y = 9, label = "ab")+
+  annotate("text", x = 8, y = 9, label = "a")+
+  annotate("text", x = 9, y = 9, label = "ab")+
+  labs(y = "pH",
+       x = " ")+
+  ylim(0, 10)+
+  scale_fill_manual(values = pnw_palette('Lake',9))+
+  theme_er()+
+  theme(axis.text.x = element_text (vjust = 0.5, hjust=1, angle = 90), legend.position = "NONE")
 
 
-
+###
 SOM_sd_standardized %>%
   #filter(ftrt == "CNTL ") %>% 
   # mutate(ftrt = recode(ftrt, "CMPT" = "Compost",
@@ -647,3 +925,25 @@ library(cowplot)
 
 a+b+c+d #combines the two plots
   #plot_layout(guides = "collect") # sets a common legend
+
+
+############ 
+#Available P pbic 
+
+pbic =
+  bio_dat2_grouped %>% 
+  group_by(ftrt, time) %>% 
+  dplyr::summarise(pbic_mean = round(mean(pbic), 2),
+                   pbic_se = round(sd(pbic)/sqrt(n()),2)) %>% 
+  mutate(pbic = paste(pbic_mean, "\u00b1", pbic_se)) 
+
+pbic %>% knitr::kable() # prints a somewhat clean table in the console
+
+write.csv(pbic, "output/pbic_ftrt_table.csv", row.names = FALSE)
+  
+pbicstat_aov <- aov(pbic ~ ctrt*ftrt, data = bio_dat2_grouped)
+summary.aov(pbicstat_aov)
+
+pbicstat_hsd <- HSD.test(pbicstat_aov, "ftrt")
+print(pbicstat_hsd)
+

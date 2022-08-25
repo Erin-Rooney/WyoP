@@ -35,17 +35,42 @@ incub_dat_enzymeslonger =
   pivot_longer(-c(time, ctrt, ftrt), names_to = 'enzymes_type', values_to = 'enzymes_percbio') %>% 
   filter(ctrt != "Control")
 
+
+incub_dat_enzymeslonger_control =
+  incub_dat %>% 
+  select(time, ctrt, ftrt, phos) %>% 
+  pivot_longer(-c(time, ctrt, ftrt), names_to = 'enzymes_type', values_to = 'enzymes_conc') %>% 
+  filter(ctrt == "Control")
+
 #ggplot-----------------
 
-incub_dat_enzymeslonger %>% 
+phos_fig =
+  incub_dat_enzymeslonger %>% 
   filter(enzymes_type == "phos_percbio" & time != "Baseline") %>% 
   ggplot() +
   geom_boxplot(aes(x = ctrt, y = enzymes_percbio, fill = time), alpha = 0.7) +
-  labs(x = "", y = "Phosphatase concentrations/g ccbiomass")+
-  scale_fill_manual(values = wes_palette('Royal1',3))+
+  labs(x = "", y = "Acid phosphatase activity (nmol/h/g soil)")+
+  scale_fill_manual(values = wes_palette('Zissou1',3))+
   facet_grid(ftrt~.)+
   theme_er()+
   theme(legend.position = "bottom")
+
+ggsave("output/phos_fig.tiff", plot = phos_fig, height = 5, width = 4)
+
+phos_ftrt_fallow_fig =
+  incub_dat_enzymeslonger_control %>% 
+  filter(time != "Baseline") %>% 
+  ggplot() +
+  geom_boxplot(aes(x = ftrt, y = enzymes_conc, fill = time), alpha = 0.7) +
+  labs(x = "", y = "Acid phosphatase activity 
+       (nmol/h/g soil)")+
+  scale_fill_manual(values = wes_palette('Zissou1',3))+
+  #facet_grid(ftrt~.)+
+  theme_er()+
+  theme(legend.position = "NONE")
+
+ggsave("output/phos_ftrt.tiff", plot = phos_ftrt_fallow_fig, height = 3, width = 3)
+
 
 
 phos = incub_dat2 %>% 
@@ -336,6 +361,7 @@ p_relabund_longer_se=
   filter(ctrt != "Control" & time != "Baseline") %>% 
   dplyr::summarise(relabundance = round(mean(relabund), 2),
                    se = round(sd(relabund)/sqrt(n()),2))
+
 
 
 p_relabund_longer= 

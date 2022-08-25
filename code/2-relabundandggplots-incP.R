@@ -25,7 +25,8 @@ incub_dat2 =
                 edta_percbio = (edta/cbio),
                 unavp_percbio = (unavp/cbio),
                 porg_percbio = (porg/cbio),
-                ptot_percbio = (ptot/cbio))  
+                ptot_percbio = (ptot/cbio)) %>% 
+  filter(unavp_percbio < 7) #removing an outlier that looks like contamination
 
 
 p_relabund_by_sample = 
@@ -85,15 +86,19 @@ p_relabund_summary %>%
   NULL
   
 
-p_relabund_by_sample %>% 
+inc_P =
+  p_relabund_by_sample %>% 
   filter(time != "Baseline" & ctrt != "Control") %>% 
   ggplot()+
-  geom_boxplot(aes(x = ctrt, y = abund, fill = ctrt), alpha = 0.6)+  
-  scale_fill_manual(values = (wes_palette("Zissou1",5)))+
-  facet_grid(ftrt~phosphorus_pool)+
-  labs(x = "", y = 'phosphorus concentration')+
+  geom_boxplot(aes(x = ftrt, y = abund, fill = ctrt), alpha = 0.6)+  
+  scale_fill_manual(values = (wes_palette("Royal2",5)))+
+  labs(x = "", y = 'Incubated soil P concentration, mg/kg')+
+  facet_wrap(phosphorus_pool~., scales = 'free_y')+
   theme_er()+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(legend.position = "bottom")
+
+ggsave("output/incubation_P.tiff", plot = inc_P, height = 6, width = 7.5)
+
 
 
 # 3. PCA ---------------------------------------------------------------------
