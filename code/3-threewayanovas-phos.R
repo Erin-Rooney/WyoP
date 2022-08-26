@@ -124,8 +124,74 @@ print(amac2_hsd)
 unavp2_aov <- aov(unavp ~ ftrt*ctrt*time, data = pall2)
 summary.aov(unavp2_aov)
 
+unavp2_hsd = HSD.test(unavp2_aov, "ftrt")
+print(unavp2_hsd)
+
+unavp2_hsd = HSD.test(unavp2_aov, "ctrt")
+print(unavp2_hsd)
+
+
+
 porg2_aov <- aov(porg ~ ftrt*ctrt*time, data = pall2)
 summary.aov(porg2_aov)
+
+porg2_hsd = HSD.test(porg2_aov, "ftrt")
+print(porg2_hsd)
+
+porg2_hsd = HSD.test(porg2_aov, "ctrt")
+print(porg2_hsd)
+
+#######individual hsd within each ftrt to test differences in ctrt for figures
+
+unavpcompost_aov <- aov(unavp ~ ctrt, data = pall2 %>% filter(ftrt == "Compost"))
+summary.aov(unavpcompost_aov)
+
+unavpcompost_hsd = HSD.test(unavpcompost_aov, "ctrt")
+print(unavpcompost_hsd)
+
+
+unavpcontrol_aov <- aov(unavp ~ ctrt, data = pall2 %>% filter(ftrt == "Control"))
+summary.aov(unavpcontrol_aov)
+
+unavpcontrol_hsd = HSD.test(unavpcontrol_aov, "ctrt")
+print(unavpcontrol_hsd)
+
+
+
+unavpifert_aov <- aov(unavp ~ ctrt, data = pall2 %>% filter(ftrt == "Inorganic Fertilizer"))
+summary.aov(unavpifert_aov)
+
+unavpifert_hsd = HSD.test(unavpifert_aov, "ctrt")
+print(unavpifert_hsd)
+
+
+
+###
+
+
+porgcompost_aov <- aov(porg ~ ctrt, data = pall2 %>% filter(ftrt == "Compost"))
+summary.aov(porgcompost_aov)
+
+porgcompost_hsd = HSD.test(porgcompost_aov, "ctrt")
+print(porgcompost_hsd)
+
+
+porgcontrol_aov <- aov(porg ~ ctrt, data = pall2 %>% filter(ftrt == "Control"))
+summary.aov(porgcontrol_aov)
+
+porgcontrol_hsd = HSD.test(porgcontrol_aov, "ctrt")
+print(porgcontrol_hsd)
+
+
+
+porgifert_aov <- aov(porg ~ ctrt, data = pall2 %>% filter(ftrt == "Inorganic Fertilizer"))
+summary.aov(porgifert_aov)
+
+porgifert_hsd = HSD.test(porgifert_aov, "ctrt")
+
+print(porgifert_hsd)
+
+
 
 
 #not standardized minus fallow
@@ -324,6 +390,14 @@ pall_longer =
 
 #p concentrations are absolute 
 
+library(tibble)
+
+gglabel = tribble(
+  ~ctrt, ~x, ~y, ~label,
+  "faba bean oat", 'Compost', 79, "A",
+  "faba bean oat", 'Control', 55, "B",
+  "faba bean oat", 'Inorganic Fertilizer', 55, "B")
+
 P_reserve_fig =
   pall_longer %>%
   filter(phosphorus_pool == "reserve P") %>% 
@@ -333,6 +407,9 @@ P_reserve_fig =
                 width = .2, position = position_dodge(.9), color = 'black')+
   labs(y = "Reserve P, mg/kg", x = "")+
   scale_fill_manual(values = pnw_palette('Starfish',3))+
+  # geom_text(data = gglabel, aes(x = x, y = y, label = label), color = "black", size = 3, position_dodge(width = 0.2), 
+  #            stat = 'identity')+
+  ylim(0,100)+
   facet_wrap(.~ctrt)+
   theme_er()+
   theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
@@ -355,7 +432,7 @@ P_pools_fig =
   theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   NULL
 
-ggsave("output/phos_pools_fig.tiff", plot = P_pools_fig, height = 4.5, width = 8)
+ggsave("output/phos_pools_fig.tiff", plot = P_pools_fig, height = 6, width = 7)
 
 
 
@@ -457,6 +534,52 @@ amac_only =
   table_ftrt_amac %>% 
   filter(phos_pool == "amac")
 
+#######
+
+#same as above but this time, time is combined for manuscript results section, for PORG
+
+pall_ftrt_p_summarized_porg =
+  pall2 %>% 
+  select(ftrt, ctrt, time, pbic, amac, unavp, porg) %>% 
+  na.omit() %>% 
+  pivot_longer(-c(ftrt, ctrt, time), names_to = 'phos_pool', values_to = "abund") %>% 
+  group_by(ctrt, ftrt, phos_pool) %>%
+  dplyr::summarise(abundance = round(mean(abund), 2),
+                   se = round(sd(abund)/sqrt(n()),2))
+
+
+table_ftrt_porg = 
+  pall_ftrt_p_summarized_porg %>% 
+  mutate(summary = paste(abundance, "\u00b1", se)) %>% 
+  dplyr::select(-abundance, -se)
+
+porg_only =
+  table_ftrt_porg %>% 
+  filter(phos_pool == "porg")
+
+#now unavp
+
+pall_ftrt_p_summarized_unavp =
+  pall2 %>% 
+  select(ftrt, ctrt, time, pbic, amac, unavp, porg) %>% 
+  na.omit() %>% 
+  pivot_longer(-c(ftrt, ctrt, time), names_to = 'phos_pool', values_to = "abund") %>% 
+  group_by(ctrt, ftrt, phos_pool) %>%
+  dplyr::summarise(abundance = round(mean(abund), 2),
+                   se = round(sd(abund)/sqrt(n()),2))
+
+
+table_ftrt_unavp = 
+  pall_ftrt_p_summarized_unavp %>% 
+  mutate(summary = paste(abundance, "\u00b1", se)) %>% 
+  dplyr::select(-abundance, -se)
+
+unavp_only =
+  table_ftrt_unavp %>% 
+  filter(phos_pool == "unavp")
+
+
+
 #fit hsd function
 
 fit_hsd = function(dat){
@@ -482,6 +605,22 @@ abund_hsd_ftrt_notime =
   group_by(ctrt, phos_pool) %>% 
   do(fit_hsd(.)) %>% 
   filter(phos_pool == "amac")
+
+#no time, porg only
+
+abund_hsd_ftrt_notime_porg = 
+  pall_ftrt_p_sample %>%
+  group_by(ctrt, phos_pool) %>% 
+  do(fit_hsd(.)) %>% 
+  filter(phos_pool == "porg")
+
+#no time, unavp only
+
+abund_hsd_ftrt_notime_uavp = 
+  pall_ftrt_p_sample %>%
+  group_by(ctrt, phos_pool) %>% 
+  do(fit_hsd(.)) %>% 
+  filter(phos_pool == "unavp")
 
 # combine with summarized table 
 #something is going wrong and I'm winding up with phos pools all being the same

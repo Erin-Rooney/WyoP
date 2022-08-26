@@ -137,16 +137,16 @@ gh_dat2 =
 
 # ggscatter plots
 
-bio_dat2 %>% 
-  ggplot(aes(x = cbio_mean_kg_ha, y = wbio_mean_kg_ha))+
-  geom_point()+
-  geom_smooth(method = "lm", se = FALSE)+
-  #ylim(0,4.5)+
-  geom_text(x = 15, y = 4.5, label = eq(bio_dat2$cbio_mean_kg_ha,bio_dat2$wbio_mean_kg_ha), parse = TRUE)+
-  labs(y = "wheat biomass, kg per hectare",
-       x = "cover crop biomass, kg per hectare")+
-  theme_er()+
-  NULL
+# bio_dat2 %>% 
+#   ggplot(aes(x = cbio_mean_kg_ha, y = wbio_mean_kg_ha))+
+#   geom_point()+
+#   geom_smooth(method = "lm", se = FALSE)+
+#   #ylim(0,4.5)+
+#   geom_text(x = 15, y = 4.5, label = eq(bio_dat2$cbio_mean_kg_ha,bio_dat2$wbio_mean_kg_ha), parse = TRUE)+
+#   labs(y = "wheat biomass, kg per hectare",
+#        x = "cover crop biomass, kg per hectare")+
+#   theme_er()+
+#   NULL
 
 mycolors = c(wes_palette("Darjeeling1"), wes_palette("Royal2"))
 
@@ -842,6 +842,40 @@ g1+g2+g3+g4+ #combines the two plots
 wbio_aov <- aov(wbio ~ grouping, data = bio_dat2_grouped)
 summary.aov(wbio_aov)
 
+
+
+
+wbio2_aov <- aov(wbio ~ ctrt, data = bio_dat2_grouped)
+summary.aov(wbio2_aov)
+
+wbio2_hsd <- HSD.test(wbio2_aov, "ctrt")
+print(wbio2_hsd)
+
+
+
+cbio2_aov <- aov(cbio ~ ctrt, data = bio_dat2_grouped)
+summary.aov(cbio2_aov)
+
+cbio2_hsd <- HSD.test(cbio2_aov, "ctrt")
+print(cbio2_hsd)
+
+
+wbio2_aov <- aov(wbio ~ ftrt*ctrt, data = bio_dat2_grouped)
+summary.aov(wbio2_aov)
+
+wbio2_hsd <- HSD.test(wbio2_aov, "ftrt")
+print(wbio2_hsd)
+
+
+
+cbio2_aov <- aov(cbio ~ ftrt*ctrt, data = bio_dat2_grouped)
+summary.aov(cbio2_aov)
+
+cbio2_hsd <- HSD.test(cbio2_aov, "ftrt")
+print(cbio2_hsd)
+
+
+
 bio_dat2_grouped_filtered =
   bio_dat2_grouped %>% 
   filter(pbic != '.')
@@ -975,133 +1009,3 @@ bio_dat2 %>%
 
 
 
-gh_dat3 %>% 
-  
-
-#statspreliminary-------------------
-
-
-
-
-
-
-#stats_polished--------------
-
-# 4. relabund summary table ----------------------------------------------------------------
-## step 1: prepare the data, combine mean +/- se
-## unicode "\u00b1" gives plus-minus symbol
-
-relabund_table_covertype = 
-  fticr_water_relabund_summarized %>% 
-  #filter(cover_type == "Open") %>% 
-  mutate(summary = paste(relabundance, "\u00b1", se)) %>% 
-  dplyr::select(-relabundance, -se)
-
-## step 2: create ANOVA function for relabund ~ Trtmt, for each combination of Site-Material-Class
-
-fit_aov_open = function(dat){
-  
-  aov(relabund ~ slopepos, data = dat) %>% 
-    broom::tidy() %>% # convert to clean dataframe
-    rename(pvalue = `p.value`) %>% 
-    filter(term == "slopepos") %>% 
-    mutate(asterisk = case_when(pvalue <= 0.05 ~ "*")) %>% 
-    dplyr::select(asterisk) %>% # we need only the asterisk column
-    # two steps below, we need to left-join. 
-    # set Trtmt = "FTC" so the asterisks will be added to the FTC values only
-    #mutate(cover_type = "Open")   
-    force()
-  
-}
-
-fit_hsd = function(dat){
-  a = aov(relabund ~ slopepos, data = dat)
-  h = HSD.test(a, "slopepos")
-  h$groups %>% mutate(slopepos = row.names(.)) %>% 
-    rename(label = groups) %>%  
-    dplyr::select(slopepos, label)
-}
-
-
-## step 3: run the fit_anova function 
-## do this on the original relabund file, because we need all the reps
-
-relabund_hsd_covertype = 
-  fticr_water_relabund %>% 
-  #filter(cover_type == "Open") %>% 
-  group_by(cover_type, Class) %>% 
-  do(fit_hsd(.))
-
-## step 4: combine the summarized values with the asterisks
-relabund_table_with_hsd_covertype = 
-  relabund_table_covertype %>% 
-  left_join(relabund_hsd_covertype) %>%
-  # combine the values with the label notation
-  mutate(value = paste(summary, label),
-         # this will also add " NA" for the blank cells
-         # use str_remove to remove the string
-         #value = str_remove(value, " NA")
-  ) %>% 
-  dplyr::select(-summary, -label) %>% 
-  pivot_wider(names_from = "slopepos", values_from = "value") %>% 
-  force()
-
-relabund_table_with_hsd_covertype %>% knitr::kable() # prints a somewhat clean table in the console
-
-write.csv(relabund_table_with_hsd_covertype, "output/slopepos_hsdstats.csv", row.names = FALSE)
-
-
-# Site Position (CANOPY ONLY)
-
-
-# 4. relabund summary table ----------------------------------------------------------------
-## step 1: prepare the data, combine mean +/- se
-## unicode "\u00b1" gives plus-minus symbol
-
-relabund_table_canopy = 
-  fticr_water_relabund_summarized %>% 
-  filter(cover_type == "Canopy") %>% 
-  mutate(summary = paste(relabundance, "\u00b1", se)) %>% 
-  dplyr::select(-relabundance, -se)
-
-## step 2: create ANOVA function for relabund ~ Trtmt, for each combination of Site-Material-Class
-
-fit_aov_canopy = function(dat){
-  
-  aov(relabund ~ slopepos, data = dat) %>% 
-    broom::tidy() %>% # convert to clean dataframe
-    rename(pvalue = `p.value`) %>% 
-    filter(term == "slopepos") %>% 
-    mutate(asterisk = case_when(pvalue <= 0.05 ~ "*")) %>% 
-    dplyr::select(asterisk) %>% # we need only the asterisk column
-    # two steps below, we need to left-join. 
-    # set Trtmt = "FTC" so the asterisks will be added to the FTC values only
-    mutate(cover_type = "Canopy")   
-  
-}
-
-
-## step 3: run the fit_anova function 
-## do this on the original relabund file, because we need all the reps
-
-relabund_asterisk_canopy = 
-  fticr_water_relabund %>% 
-  filter(cover_type == "Canopy") %>% 
-  group_by(Class) %>% 
-  do(fit_aov_canopy(.))
-
-## step 4: combine the summarized values with the asterisks
-relabund_table_with_asterisk_canopy = 
-  relabund_table_canopy %>% 
-  left_join(relabund_asterisk_canopy) %>%
-  # combine the values with the asterisk notation
-  mutate(value = paste(summary, asterisk),
-         # this will also add " NA" for the blank cells
-         # use str_remove to remove the string
-         value = str_remove(value, " NA")) %>% 
-  dplyr::select(-summary, -asterisk) %>% 
-  pivot_wider(names_from = "slopepos", values_from = "value")
-
-relabund_table_with_asterisk_canopy %>% knitr::kable() # prints a somewhat clean table in the console
-
-write.csv(relabund_table_with_asterisk_canopy, "output/slopeposcanopy_aovstats.csv", row.names = FALSE)
