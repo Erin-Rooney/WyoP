@@ -177,28 +177,30 @@ bio_dat2 %>%
 
   
 
-bio_dat2 %>%
-  filter(ftrt == 'CNTL ' & ctrt == "Faba Bean") %>% 
+ctrtvftrtbio_fig =
+  bio_dat2 %>%
+  #filter(ftrt == 'CNTL ' & ctrt == "Faba Bean") %>% 
   ggplot(aes(x = cbiokg_ha, y = wbiokg_ha))+
-  geom_point(aes(fill = ctrt, shape = ctrt), color = "black", size = 5, alpha = 0.75)+
-  geom_smooth(method = "lm", se = FALSE, group = 'sample')+
-  stat_regline_equation(label.y = 20.25,label.x = 5, aes(label = ..eq.label..)) +
-  stat_regline_equation(label.y = 19, label.x = 5, aes(label = ..rr.label..)) +
-  stat_fit_glance(method = 'lm',
-                  method.args = list(formula = formula),
-                  geom = 'text',
-                  aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
-                  label.x = 15, label.y = 3.5, size = 3)+
+  geom_point(aes(fill = ctrt), shape = c(21), color = "black", size = 4.5, alpha = 0.5)+
+  geom_smooth(method = "lm", formula = y ~ x, se = FALSE, group = 'sample')+
+  stat_regline_equation(label.y = 65,label.x = 300, aes(label = ..eq.label..), size = 3.5) +
+  stat_regline_equation(label.y = 55, label.x = 300, aes(label = ..rr.label..), size = 3.5) +
+  # stat_fit_glance(method = 'lm',
+  #                 method.args = list(formula = formula),
+  #                 geom = 'text',
+  #                 aes(label = paste("P-value = ", signif(..p.value.., digits = 4), sep = "")),
+  #                 label.x = 15, label.y = 3.5, size = 3)+
   labs(y = "wheat biomass, kg per hectare",
        x = "cover crop biomass, kg per hectare")+
-  #scale_color_manual(values = mycolors)+
-  #scale_color_manual(values = pnw_palette('Shuksan',9))+
-  #scale_fill_manual(values = pnw_palette('Shuksan2',9))+
-  scale_fill_manual(values = c('#009474'))+
-  scale_shape_manual(values = c(21))+
+  scale_color_manual(values = pnw_palette('Lake',9))+
+  scale_fill_manual(values = pnw_palette('Lake',9))+
+  #scale_shape_manual(values = c(21))+
+  ylim(0, 80)+
   facet_wrap(.~ctrt)+
   theme_er()+
   theme(legend.position = "None")
+
+ggsave("output/ctrtvftrtbio.tiff", plot = ctrtvftrtbio_fig, width = 6, height =6)
 
 bio_dat2 %>%
   filter(ftrt == 'CNTL ' & ctrt == c("Faba Bean Oat")) %>% 
