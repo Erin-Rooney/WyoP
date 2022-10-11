@@ -135,7 +135,16 @@ bio_dat2_grouped =
   bio_dat2 %>%
   group_by(ctrt) %>% 
   dplyr::summarise(wbio = round(mean(wbiokg_ha), 2),
-                   cbio = round(mean(cbiokg_ha), 2)) %>% 
+                   cbio = round(mean(cbiokg_ha), 2),
+                   amm = round(mean(amm), 2),
+                   nit = round(mean(nit), 2),
+                   pmn = round(mean(pmn), 2),
+                   pmc = round(mean(pmc), 2),
+                   pbic = round(mean(pbic), 2),
+                   amac = round(mean(amac), 2),
+                   porg = round(mean(porg), 2),
+                   unavp = round(mean(unavp), 2),
+                   ) %>% 
   dplyr::mutate(grouping = "yes")
   #dplyr::mutate(grouping = if_else(ctrt == "Fallow", "Fallow", "Cover Crop")) 
 
@@ -181,6 +190,12 @@ ph_dat_grouped %>%
 
   #facet_wrap(.~ctrt)+
   theme_er()
+
+print(ph_dat_grouped)
+
+ph_dat_grouped %>% knitr::kable()
+
+write.csv(ph_dat_grouped, "output/ph_dat_grouped.csv")
 
 #
 
@@ -429,31 +444,31 @@ write.csv(biomass2, "biomassctrt.csv", row.names = FALSE)
 #wheat biomass 
 
 #effect of cover crop presence
-wbio_aov <- aov(wbio ~ grouping, data = bio_dat2_grouped)
-summary.aov(wbio_aov)
+# wbio_aov <- aov(wbio ~ grouping, data = bio_dat2_grouped)
+# summary.aov(wbio_aov)
 
 #effect of cover crop biomass
 wbio_cbio <- lme(wbio ~ cbio, random = ~1|ctrt, data = bio_dat2_grouped)
 anova(wbio_cbio)
 
 #effect of fertility treatments
-wbio_aov <- aov(wbio ~ ftrt, data = bio_dat2_grouped)
-summary.aov(wbio_aov)
+# wbio_aov <- aov(wbio ~ ftrt, data = bio_dat2_grouped)
+# summary.aov(wbio_aov)
 
 #CN metrics
 
-#effect of fertility
-ammftrt_aov <- aov(amm ~ ftrt*grouping, data = bio_dat2_grouped)
-summary.aov(ammftrt_aov)
-
-nitftrt_aov <- aov(nit ~ ftrt*grouping, data = bio_dat2_grouped)
-summary.aov(nitftrt_aov)
-
-pmnftrt_aov <- aov(pmn ~ ftrt*grouping, data = bio_dat2_grouped)
-summary.aov(pmnftrt_aov)
-
-pmcftrt_aov <- aov(pmc ~ ftrt*grouping, data = bio_dat2_grouped)
-summary.aov(pmcftrt_aov)
+#effect of fertility (bio_dat2_grouped not formatted for below stats)
+# ammftrt_aov <- aov(amm ~ ftrt*grouping, data = bio_dat2_grouped)
+# summary.aov(ammftrt_aov)
+# 
+# nitftrt_aov <- aov(nit ~ ftrt*grouping, data = bio_dat2_grouped)
+# summary.aov(nitftrt_aov)
+# 
+# pmnftrt_aov <- aov(pmn ~ ftrt*grouping, data = bio_dat2_grouped)
+# summary.aov(pmnftrt_aov)
+# 
+# pmcftrt_aov <- aov(pmc ~ ftrt*grouping, data = bio_dat2_grouped)
+# summary.aov(pmcftrt_aov)
 
 ##############################
 
@@ -502,17 +517,17 @@ wbio_cbio <- lme(wbio ~ cbio, random = ~1|ctrt, data = bio_dat2_grouped)
 anova(wbio_cbio)
 
 
-wbio_ctrt <- lme(wbio ~ ctrt, random = ~1|ftrt, data = bio_dat2_grouped)
-anova(wbio_ctrt)
+# wbio_ctrt <- lme(wbio ~ ctrt, random = ~1|ftrt, data = bio_dat2_grouped)
+# anova(wbio_ctrt)
+# 
+# ctrt_aov <- aov(wbio ~ ctrt*ftrt, data = bio_dat2_grouped)
+# summary.aov(ctrt_aov)
 
-ctrt_aov <- aov(wbio ~ ctrt*ftrt, data = bio_dat2_grouped)
-summary.aov(ctrt_aov)
-
-wbioctrt_hsd <- HSD.test(ctrt_aov, "ctrt")
-print(wbioctrt_hsd)
-
-wbioftrt_hsd <- HSD.test(ctrt_aov, "ftrt")
-print(wbioftrt_hsd)
+# wbioctrt_hsd <- HSD.test(ctrt_aov, "ctrt")
+# print(wbioctrt_hsd)
+# 
+# wbioftrt_hsd <- HSD.test(ctrt_aov, "ftrt")
+# print(wbioftrt_hsd)
 
 
 bio_dat2_grouped_filtered =
@@ -585,6 +600,7 @@ summary.aov(pmc_aov)
 
 pmc_hsd <- HSD.test(pmc_aov, "ctrt")
 print(pmc_hsd)
+
 
 ####
 

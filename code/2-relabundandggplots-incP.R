@@ -101,6 +101,44 @@ ggsave("output/incubation_P.tiff", plot = inc_P, height = 6, width = 7.5)
 
 
 
+p_relabund_forbar =
+  p_relabund_longer %>% 
+  group_by(ctrt, ftrt) %>% 
+  dplyr::rename("available_p" = "Available P",
+                "reserve_p" = "Reserve P",
+                "fixed_p" = "Fixed P",
+                "organic_p" = "Organic P") %>% 
+  
+  dplyr::summarise(available_p_mean = mean(available_p),
+                   available_p_sd = sd(available_p)/sqrt(n()),
+                   reserve_p_sd = sd(reserve_p)/sqrt(n()),
+                   reserve_p_mean = mean(reserve_p),
+                   fixed_p_mean = mean(fixed_p),
+                   fixed_p_sd = sd(fixed_p)/sqrt(n()),
+                   organic_p_sd = sd(organic_p)/sqrt(n()),
+                   organic_p_mean = mean(organic_p)) 
+
+##needs to be pivoted longer to work for below figure.
+
+inc_P =
+  p_relabund_forbar %>%
+  filter(time != "Baseline" & ctrt != "Control") %>% 
+  ggplot()+
+  geom_bar(aes(x = ftrt, y = p_concentration, fill = ctrt), alpha = 0.9, stat = 'identity', position = "dodge", color = "black")+
+  geom_errorbar(aes(x = ftrt, ymin = p_concentration - se, ymax = p_concentration + se), 
+                width = .2, position = position_dodge(.9), color = 'black')+
+  
+  p_relabund_by_sample %>% 
+  filter(time != "Baseline" & ctrt != "Control") %>% 
+  ggplot()+
+  geom_boxplot(aes(x = ftrt, y = abund, fill = ctrt), alpha = 0.6)+  
+  scale_fill_manual(values = (wes_palette("Royal2",5)))+
+  labs(x = "", y = 'Incubated soil P concentration, mg/kg')+
+  facet_wrap(phosphorus_pool~., scales = 'free_y')+
+  theme_er()+
+  theme(legend.position = "bottom")
+  
+  
 # 3. PCA ---------------------------------------------------------------------
 ## you will need relative abundance data for PCA 
 

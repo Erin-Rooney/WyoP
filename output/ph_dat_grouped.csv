@@ -1,0 +1,28 @@
+"","ftrt","ctrt","ph_mean","ph_se"
+"1","CMPT","All Mixture",7.83,0.1
+"2","CMPT","Buckwheat Oat",8.09,0.04
+"3","CMPT","Buckwheat",8.11,0.07
+"4","CMPT","Faba Bean Oat",8.11,0.01
+"5","CMPT","Faba Bean",8.1,0.06
+"6","CMPT","Radish Oat",8.05,0.02
+"7","CMPT","Radish",8.2,0.02
+"8","CMPT","Oat",8.28,0.08
+"9","CMPT","Fallow",8.15,0.08
+"10","CNTL ","All Mixture",7.98,0.06
+"11","CNTL ","Buckwheat Oat",8.11,0.03
+"12","CNTL ","Buckwheat",8.08,0.12
+"13","CNTL ","Faba Bean Oat",8.08,0.04
+"14","CNTL ","Faba Bean",8.04,0.03
+"15","CNTL ","Radish Oat",8.05,0.04
+"16","CNTL ","Radish",8.04,0.03
+"17","CNTL ","Oat",8.26,0.08
+"18","CNTL ","Fallow",8.2,0.08
+"19","IFERT ","All Mixture",7.93,0.06
+"20","IFERT ","Buckwheat Oat",8.07,0.04
+"21","IFERT ","Buckwheat",8.2,0.04
+"22","IFERT ","Faba Bean Oat",8.08,0.03
+"23","IFERT ","Faba Bean",8.06,0.03
+"24","IFERT ","Radish Oat",8.2,0.02
+"25","IFERT ","Radish",8.2,0.02
+"26","IFERT ","Oat",8.23,0.06
+"27","IFERT ","Fallow",8.21,0.03

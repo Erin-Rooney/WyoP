@@ -427,7 +427,7 @@ P_pools_fig =
                 width = .2, position = position_dodge(.9), color = 'black')+
   labs(y = "P concentration, mg/kg", x = "")+
   scale_fill_manual(values = pnw_palette('Lake',9))+
-  facet_grid(phosphorus_pool~ftrt, scales = 'free_y')+
+  facet_grid(phosphorus_pool~ftrt)+
   theme_er()+
   theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   NULL
