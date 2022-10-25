@@ -1,5 +1,7 @@
 ### 3 Factor ANOVAs for all SOM parameters
 
+#phos_pools_fig
+
 #load packages----------------
 source("code/0-packages.R")
 
@@ -261,6 +263,7 @@ pall3 =
                 pmc = as.numeric(pmc)
 )
 
+#not used in manuscript
   
 pall3 %>%
   filter(ctrt != "Fallow") %>% 
@@ -282,7 +285,7 @@ pall3 %>%
   NULL
 
 
-
+#not used in manuscript
 
 pall2 %>%
   filter(ctrt != "Fallow" & time == "1") %>% 
@@ -295,6 +298,7 @@ pall2 %>%
   theme(legend.position = "bottom")+
   NULL
 
+#not used in manuscript
 
 pall2 %>%
   filter(ctrt != "Fallow" & time == "2") %>% 
@@ -307,6 +311,8 @@ pall2 %>%
   theme(legend.position = "bottom")+
   NULL
 
+#not used in manuscript
+
 pall2 %>%
   filter(ctrt != "Fallow" & time == "1") %>% 
   ggplot()+
@@ -318,6 +324,7 @@ pall2 %>%
   theme(legend.position = "bottom")+
   NULL
 
+#not used in manuscript
 
 pall2 %>%
   filter(ctrt != "Fallow" & time == "2") %>% 
@@ -331,7 +338,7 @@ pall2 %>%
   NULL
 
 
-
+#not used in manuscript
 
 pall2 %>%
   filter(ctrt != "Fallow") %>% 
@@ -344,6 +351,7 @@ pall2 %>%
   theme(legend.position = "bottom")+
   NULL
 
+#not used in manuscript
 
 pall2 %>%
   filter(ctrt != "Fallow") %>% 
@@ -355,6 +363,8 @@ pall2 %>%
   theme_er()+
   theme(legend.position = "bottom")+
   NULL
+
+#not used in manuscript
 
 pall2 %>%
   filter(ctrt != "Fallow") %>% 
@@ -389,22 +399,25 @@ pall_longer =
   mutate(phosphorus_pool = factor(phosphorus_pool, levels = c('organic P', 'reserve P', 'fixed P')))
 
 #p concentrations are absolute 
+#this is literally the only figure from this script so far that is actually included in the manuscript
 
 library(tibble)
 
 gglabel = tribble(
   ~ctrt, ~x, ~y, ~label,
-  "faba bean oat", 'Compost', 79, "A",
-  "faba bean oat", 'Control', 55, "B",
-  "faba bean oat", 'Inorganic Fertilizer', 55, "B")
+  "Faba Bean Oat", 'Compost', 79, "A",
+  "Faba Bean Oat", 'Control', 58, "B",
+  "Faba Bean Oat", 'Inorganic Fertilizer', 58, "B")
 
 P_reserve_fig =
   pall_longer %>%
-  filter(phosphorus_pool == "reserve P") %>% 
+  filter(phosphorus_pool == "reserve P" & ctrt == "Faba Bean Oat") %>% 
+  mutate(ftrt = factor(ftrt, levels = c('Compost', 'Inorganic Fertilizer', 'Control'))) %>% 
   ggplot()+
   geom_bar(aes(x = ftrt, y = p_concentration, fill = ftrt), alpha = 0.9, stat = 'identity', position = "dodge", color = "black")+
   geom_errorbar(aes(x = ftrt, ymin = p_concentration - se, ymax = p_concentration + se), 
                 width = .2, position = position_dodge(.9), color = 'black')+
+  geom_text(data = gglabel, aes(x = x, y = y, label = label), color = 'black', size = 5)+
   labs(y = "Reserve P, mg/kg", x = "")+
   scale_fill_manual(values = pnw_palette('Starfish',3))+
   # geom_text(data = gglabel, aes(x = x, y = y, label = label), color = "black", size = 3, position_dodge(width = 0.2), 
@@ -412,24 +425,29 @@ P_reserve_fig =
   ylim(0,100)+
   facet_wrap(.~ctrt)+
   theme_er()+
-  theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  theme(legend.position = "NONE")+
+  #theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   NULL
   
-ggsave("output/phos_reserve_fig.tiff", plot = P_reserve_fig, height = 7, width = 6)
+ggsave("output/phos_reserve_fig.tiff", plot = P_reserve_fig, height = 5, width = 4.5)
 
+library(NatParksPalettes)
 
 P_pools_fig =
   pall_longer %>%
   filter(phosphorus_pool!= "reserve P") %>% 
+  mutate(phosphorus_pool = recode(phosphorus_pool, "fixed P" = "fixed P (mg/kg)",
+                                  "organic P" = "organic P (mg/kg)")) %>% 
   ggplot()+
   geom_bar(aes(x = ctrt, y = p_concentration, fill = ctrt), alpha = 0.5, stat = 'identity', position = "dodge", color = "black")+
   geom_errorbar(aes(x = ctrt, ymin = p_concentration - se, ymax = p_concentration + se), 
                 width = .2, position = position_dodge(.9), color = 'black')+
-  labs(y = "P concentration, mg/kg", x = "")+
-  scale_fill_manual(values = pnw_palette('Lake',9))+
-  facet_grid(phosphorus_pool~ftrt)+
+  labs(y = " ", x = "")+
+  scale_fill_manual(values = natparks.pals(name = "Olympic", 9))+ 
+  facet_grid(phosphorus_pool~ftrt, switch = "y")+
   theme_er()+
-  theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        strip.placement = "outside")+
   NULL
 
 ggsave("output/phos_pools_fig.tiff", plot = P_pools_fig, height = 6, width = 7)

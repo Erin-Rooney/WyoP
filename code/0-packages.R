@@ -16,6 +16,9 @@ library(Hmisc)
 #install.packages("IDPmisc")
 library(IDPmisc)
 library(wesanderson)
+library(cowplot)
+library(patchwork)
+
 theme_er <- function() {  # this for all the elements common across plots
   theme_bw() %+replace%
     theme(legend.position = "right",
