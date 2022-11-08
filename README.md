@@ -1,6 +1,6 @@
 ## Mineral and organic matter associated phosphorus in soils of winter wheat (Triticum aestivum, L.) and cover crop systems
 
-*submitted to SSSAJ*
+*submitted to SSSAJ November 2022*
 
 University of Wyoming, USDA OREI funded research
 
