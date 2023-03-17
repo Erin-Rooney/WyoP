@@ -57,7 +57,7 @@ pall3_t1 =
   pall2 %>% 
   na.omit()
 
-#standardized 3 way anovas
+#standardized 3 way anovas-----------
 
 pall3 =
   pall2 %>%
@@ -95,7 +95,7 @@ porg_aov <- aov(porg_percbio ~ ftrt*ctrt*time, data = pall3)
 summary.aov(porg_aov)
 
 
-#not standardized + fallow
+#not standardized + fallow----------
 
 amm2_aov <- aov(amm ~ ftrt*ctrt*time, data = pall2)
 summary.aov(amm2_aov)
@@ -123,6 +123,8 @@ amac2_hsd = HSD.test(amac2_aov, "ftrt")
 print(amac2_hsd)
 
 
+#hsds separated by time--------------
+
 unavp2_aov <- aov(unavp ~ ftrt*ctrt*time, data = pall2)
 summary.aov(unavp2_aov)
 
@@ -131,7 +133,6 @@ print(unavp2_hsd)
 
 unavp2_hsd = HSD.test(unavp2_aov, "ctrt")
 print(unavp2_hsd)
-
 
 
 porg2_aov <- aov(porg ~ ftrt*ctrt*time, data = pall2)
@@ -143,7 +144,55 @@ print(porg2_hsd)
 porg2_hsd = HSD.test(porg2_aov, "ctrt")
 print(porg2_hsd)
 
-#######individual hsd within each ftrt to test differences in ctrt for figures
+pall2_time1 = pall2 %>% filter(time == 1)
+pall2_time2 = pall2 %>% filter(time == 2)
+ 
+#Time 1
+
+porg_time1_aov <- aov(porg ~ ftrt*ctrt, data = pall2_time1)
+summary.aov(porg_time1_aov)
+
+porg_time1_hsd_ftrt = HSD.test(porg_time1_aov, "ftrt")
+print(porg_time1_hsd_ftrt)
+
+porg_time1_hsd_ctrt = HSD.test(porg_time1_aov, "ctrt")
+print(porg_time1_hsd_ctrt)
+
+pall2_time1_compost = pall2 %>% filter(time == 1 & ftrt == "Compost") %>% select(ctrt, ftrt, unavp) %>% na.omit()
+
+unavp_time1_aov <- aov(unavp ~ ctrt, data = pall2_time1_compost)
+summary.aov(unavp_time1_aov)
+
+unavp_time1_hsd = HSD.test(unavp_time1_aov, "ctrt")
+print(unavp_time1_hsd)
+
+
+pall2_time1_control = pall2 %>% filter(time == 1 & ftrt == "Control") %>% select(ctrt, ftrt, unavp) %>% na.omit()
+
+unavp_time1_aov <- aov(unavp ~ ctrt, data = pall2_time1_control)
+summary.aov(unavp_time1_aov)
+
+unavp_time1_hsd = HSD.test(unavp_time1_aov, "ctrt")
+print(unavp_time1_hsd)
+
+
+#Time 2
+
+porg_time2_aov <- aov(porg ~ ftrt*ctrt, data = pall2_time2)
+summary.aov(porg_time2_aov)
+
+porg_time2_hsd_ftrt = HSD.test(porg_time2_aov, "ftrt")
+print(porg_time2_hsd_ftrt)
+
+porg_time2_hsd_ctrt = HSD.test(porg_time2_aov, "ctrt")
+print(porg_time2_hsd_ctrt)
+
+
+
+
+
+
+#######individual hsd within each ftrt to test differences in ctrt for figures-----------
 
 unavpcompost_aov <- aov(unavp ~ ctrt, data = pall2 %>% filter(ftrt == "Compost"))
 summary.aov(unavpcompost_aov)
@@ -168,7 +217,7 @@ print(unavpifert_hsd)
 
 
 
-###
+###------
 
 
 porgcompost_aov <- aov(porg ~ ctrt, data = pall2 %>% filter(ftrt == "Compost"))
@@ -196,7 +245,7 @@ print(porgifert_hsd)
 
 
 
-#not standardized minus fallow
+#not standardized minus fallow------------
 
 pall2b =
   pall2 %>%
@@ -285,7 +334,7 @@ pall3 %>%
   NULL
 
 
-#not used in manuscript
+#not used in manuscript--------------
 
 pall2 %>%
   filter(ctrt != "Fallow" & time == "1") %>% 
@@ -298,7 +347,6 @@ pall2 %>%
   theme(legend.position = "bottom")+
   NULL
 
-#not used in manuscript
 
 pall2 %>%
   filter(ctrt != "Fallow" & time == "2") %>% 
@@ -378,7 +426,7 @@ pall2 %>%
   NULL
 
 ######
-#new ggplot figs Aug 25 2022
+#new ggplot figs Aug 25 2022---------------
 
 pall_longer =
   pall2 %>% 
@@ -387,7 +435,7 @@ pall_longer =
   #is this where I need to summarize? pivot longer then pivot wider again?
   pivot_longer(-c(time, ctrt, ftrt), 
                names_to = 'phosphorus_pool', values_to = 'concentration') %>% 
-  group_by(ftrt, ctrt, phosphorus_pool) %>%
+  group_by(ftrt, ctrt, time, phosphorus_pool) %>%
   dplyr::summarise(p_concentration = round(mean(concentration), 2),
                    se = round(sd(concentration)/sqrt(n()),2)) %>% 
   mutate(ctrt = factor(ctrt, levels = c('All Mixture', 'Buckwheat Oat', 'Buckwheat', 
@@ -433,9 +481,9 @@ ggsave("output/phos_reserve_fig.tiff", plot = P_reserve_fig, height = 5, width =
 
 library(NatParksPalettes)
 
-P_pools_fig =
+P_pools_fig_rotation1 =
   pall_longer %>%
-  filter(phosphorus_pool!= "reserve P") %>% 
+  filter(phosphorus_pool != "reserve P" & time == "1") %>% 
   mutate(phosphorus_pool = recode(phosphorus_pool, "fixed P" = "fixed P (mg/kg)",
                                   "organic P" = "organic P (mg/kg)")) %>% 
   ggplot()+
@@ -450,54 +498,27 @@ P_pools_fig =
         strip.placement = "outside")+
   NULL
 
-ggsave("output/phos_pools_fig.tiff", plot = P_pools_fig, height = 6, width = 7)
+P_pools_fig_rotation2 =
+  pall_longer %>%
+  filter(phosphorus_pool != "reserve P" & time == "2") %>% 
+  mutate(phosphorus_pool = recode(phosphorus_pool, "fixed P" = "fixed P (mg/kg)",
+                                  "organic P" = "organic P (mg/kg)")) %>% 
+  ggplot()+
+  geom_bar(aes(x = ctrt, y = p_concentration, fill = ctrt), alpha = 0.5, stat = 'identity', position = "dodge", color = "black")+
+  geom_errorbar(aes(x = ctrt, ymin = p_concentration - se, ymax = p_concentration + se), 
+                width = .2, position = position_dodge(.9), color = 'black')+
+  labs(y = " ", x = "")+
+  ylim(0, 500)+
+  scale_fill_manual(values = natparks.pals(name = "Olympic", 9))+ 
+  facet_grid(phosphorus_pool~ftrt, switch = "y")+
+  theme_er()+
+  theme(legend.position = "NONE", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        strip.placement = "outside")+
+  NULL
 
+ggsave("output/phos_pools_fig1.tiff", plot = P_pools_fig_rotation1, height = 6, width = 7)
+ggsave("output/phos_pools_fig2.tiff", plot = P_pools_fig_rotation2, height = 6, width = 7)
 
-
-
-
-
-#
-
-allmix = 
-  pall2 %>% 
-  filter(ctrt == "All Mixture") 
-
-pbic4_aov <- aov(pbic ~ ftrt*time, data = allmix)
-summary.aov(pbic4_aov)
-
-pbic4hst <- HSD.test(pbic4_aov, "ftrt")
-pbic4hst
-
-cbio4_aov <- aov(cbio ~ ftrt*time, data = allmix)
-summary.aov(cbio4_aov)
-
-pbic4hst <- HSD.test(pbic4_aov, "ftrt")
-pbic4hst
-
-oat = 
-  pall2 %>% 
-  filter(ctrt == "Oat") 
-
-
-pbic5_aov <- aov(pbic ~ ftrt*time, data = oat)
-summary.aov(pbic5_aov)
-
-
-pbic5hsd <- HSD.test(pbic5_aov, "ftrt")
-pbic5hsd
-
-
-radish = 
-  pall2 %>% 
-  filter(ctrt == "Radish") 
-
-pbic6_aov <- aov(pbic ~ ftrt*time, data = radish)
-summary.aov(pbic6_aov)
-
-
-pbic6hsd <- HSD.test(pbic6_aov, "ftrt")
-pbic6hsd
 
 
 #############
@@ -523,6 +544,11 @@ pall_ftrt_p_sample =
   pivot_longer(-c(ftrt, ctrt, time), names_to = 'phos_pool', values_to = "abund")
 
 
+pall_ctrt_p_sample =
+  pall2 %>% 
+  select(ftrt, ctrt, time, pbic, amac, unavp, porg) %>% 
+  na.omit() %>% 
+  pivot_longer(-c(ftrt, ctrt, time), names_to = 'phos_pool', values_to = "abund")
 
 table_ftrt = 
   pall_ftrt_p_summarized %>% 
@@ -601,44 +627,68 @@ unavp_only =
 #fit hsd function
 
 fit_hsd = function(dat){
-  a = aov(abund ~ ftrt, data = dat)
-  h = HSD.test(a, "ftrt")
-  h$groups %>% mutate(ftrt = row.names(.)) %>% 
+  a = aov(abund ~ ctrt, data = dat)
+  h = HSD.test(a, "ctrt")
+  h$groups %>% mutate(ctrt = row.names(.)) %>% 
     rename(label = groups) %>%  
-    dplyr::select(ftrt, label)
+    dplyr::select(ctrt, label)
 }
 
 
 #run fit_hsd function
 
-abund_hsd_ftrt = 
+abund_hsd_ctrt = 
   pall_ftrt_p_sample %>%
-  group_by(ctrt, time, phos_pool) %>% 
+  group_by(ftrt, time, phos_pool) %>% 
   do(fit_hsd(.))
 
 #no time, amac only
 
-abund_hsd_ftrt_notime = 
-  pall_ftrt_p_sample %>%
-  group_by(ctrt, phos_pool) %>% 
+abund_hsd_ctrt_notime = 
+  pall_ctrt_p_sample %>%
+  group_by(ftrt, phos_pool) %>% 
   do(fit_hsd(.)) %>% 
   filter(phos_pool == "amac")
 
-#no time, porg only
+#time, porg only
 
-abund_hsd_ftrt_notime_porg = 
-  pall_ftrt_p_sample %>%
-  group_by(ctrt, phos_pool) %>% 
+abund_hsd_ftrt_time1_porg = 
+  pall_ctrt_p_sample %>%
+  filter(time == "1") %>% 
+  group_by(ftrt, phos_pool) %>% 
   do(fit_hsd(.)) %>% 
   filter(phos_pool == "porg")
 
-#no time, unavp only
 
-abund_hsd_ftrt_notime_uavp = 
-  pall_ftrt_p_sample %>%
-  group_by(ctrt, phos_pool) %>% 
+abund_hsd_ftrt_time2_porg = 
+  pall_ctrt_p_sample %>%
+  filter(time == "2") %>% 
+  group_by(ftrt, phos_pool) %>% 
+  do(fit_hsd(.)) %>% 
+  filter(phos_pool == "porg")
+
+
+#time, unavp only
+
+abund_hsd_ftrt_time1_uavp = 
+  pall_ctrt_p_sample %>%
+  filter(time == "1") %>% 
+  group_by(ftrt, phos_pool) %>% 
   do(fit_hsd(.)) %>% 
   filter(phos_pool == "unavp")
+
+abund_hsd_ftrt_time2_uavp = 
+  pall_ctrt_p_sample %>%
+  filter(time == "2") %>% 
+  group_by(ftrt, phos_pool) %>% 
+  do(fit_hsd(.)) %>% 
+  filter(phos_pool == "unavp")
+
+write.csv(abund_hsd_ftrt_time1_porg, "output/hsd_GHporg1.csv")
+write.csv(abund_hsd_ftrt_time2_porg, "output/hsd_GHporg2.csv")
+write.csv(abund_hsd_ftrt_time2_uavp, "output/hsd_GHunavp2.csv")
+write.csv(abund_hsd_ftrt_time1_uavp, "output/hsd_GHunavp1.csv")
+
 
 # combine with summarized table 
 #something is going wrong and I'm winding up with phos pools all being the same

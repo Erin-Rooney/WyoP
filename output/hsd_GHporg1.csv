@@ -1,0 +1,28 @@
+,ftrt,phos_pool,ctrt,label
+1,Compost,porg,Buckwheat,a
+2,Compost,porg,All Mixture,ab
+3,Compost,porg,Radish Oat,abc
+4,Compost,porg,Buckwheat Oat,bc
+5,Compost,porg,Faba Bean,bc
+6,Compost,porg,Oat,bc
+7,Compost,porg,Faba Bean Oat,bc
+8,Compost,porg,Radish,bc
+9,Compost,porg,Fallow,c
+10,Control,porg,All Mixture,a
+11,Control,porg,Radish,a
+12,Control,porg,Faba Bean,ab
+13,Control,porg,Buckwheat,ab
+14,Control,porg,Radish Oat,ab
+15,Control,porg,Buckwheat Oat,ab
+16,Control,porg,Fallow,ab
+17,Control,porg,Oat,b
+18,Control,porg,Faba Bean Oat,b
+19,Inorganic Fertilizer,porg,All Mixture,a
+20,Inorganic Fertilizer,porg,Buckwheat,a
+21,Inorganic Fertilizer,porg,Radish Oat,a
+22,Inorganic Fertilizer,porg,Faba Bean,ab
+23,Inorganic Fertilizer,porg,Radish,ab
+24,Inorganic Fertilizer,porg,Buckwheat Oat,bc
+25,Inorganic Fertilizer,porg,Oat,bc
+26,Inorganic Fertilizer,porg,Fallow,c
+27,Inorganic Fertilizer,porg,Faba Bean Oat,c
