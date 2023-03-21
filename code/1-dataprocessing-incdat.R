@@ -82,7 +82,8 @@ incub_dat_enzymeslonger_forfig_cumsum =
   incub_dat_enzymeslonger_forfig %>% 
   group_by(ctrt, ftrt) %>% 
   dplyr::summarise(mean = cumsum(mean),
-                   time = time)
+                   time = time,
+                   sd = sd(mean))
 
 
 #fallow acid phosphatase activity
@@ -101,10 +102,11 @@ incub_dat_enzymeslonger_control_summarised =
   incub_dat_enzymeslonger_control_2 %>% 
   group_by(time, ctrt, ftrt) %>% 
   dplyr::summarise(mean = mean(enzymes_conc),
-                   se = sd(enzymes_conc)/sqrt(n())) %>% 
+                   sd = sd(enzymes_conc)) %>% 
   group_by(ctrt, ftrt)  %>% 
   dplyr::summarise(mean = cumsum(mean),
-                   time = time) 
+                   time = time,
+                   sd = sd) 
 
 
 #ggplot in manuscript
@@ -116,6 +118,7 @@ phos_fig_time =
   #filter(time != "0") %>%
   ggplot() +
   geom_point(aes(x = time, y = mean, color = ftrt, group = ftrt), size = 1.25) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd, x = time, color = ftrt), width=.2)+
   geom_line(aes(x = time, y = mean, color = ftrt, group = ftrt), size = 1.25) +
   labs(x = "weeks", y = "Acid phosphatase activity (nmol/h/g soil)")+
   scale_color_manual(values = c("#59629b","#e69b99"))+
@@ -134,6 +137,7 @@ fallow_enzymes =
  # filter(time != "0") %>%
   ggplot() +
   geom_point(aes(x = time, y = mean, color = ftrt, group = ftrt), size = 1.25) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd, x = time, color = ftrt), width=.2)+
   geom_line(aes(x = time, y = mean, color = ftrt, group = ftrt), size = 1.25) +
   labs(x = "weeks", y = "Acid phosphatase activity (nmol/h/g soil)")+
   scale_color_manual(values = c("#59629b","#e69b99"))+
@@ -196,7 +200,7 @@ incub_dat2_forfig_summarised =
   incub_dat2_forfig %>% 
   group_by(time, ftrt, p_type) %>% 
   dplyr::summarise(mean = mean(concentration),
-                   se = sd(concentration)/sqrt(n())) 
+                   sd = sd(concentration)) 
 
 #ggplot in manuscript
 #phosphorus pools, fallow only
