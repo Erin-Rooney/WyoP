@@ -1,0 +1,741 @@
+---
+title: "Stats table"
+author: "Erin C Rooney"
+date: "2023-04-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Greenhouse
+
+load packages
+
+```{r, warning=FALSE,message=FALSE,error=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+source("code/0-packages.R")
+
+```
+
+load data
+
+```{r}
+phosphorus = read.csv("raw/allfert_allcrop_P.csv")
+
+
+```
+
+clean up metadata
+```{r}
+
+phos2 = 
+  phosphorus %>% 
+  mutate(ctrt = recode(ctrt, "ALL " = 'All Mixture',
+                       "B" = 'Buckwheat',
+                       "BO" = 'Buckwheat Oat',
+                       "F" = "Faba Bean",
+                       "FLW" = "Fallow",
+                       "FO" = "Faba Bean Oat",
+                       "O" = 'Oat',
+                       "R" = 'Radish',
+                       "RO" = 'Radish Oat'),
+         ftrt = recode(ftrt, "CMPT" = "Compost",
+                       'CNTL ' = "Control",
+                       'IFERT ' = "Inorganic Fertilizer")) %>% 
+  dplyr::mutate(ftrt = as.factor(ftrt),
+                ctrt = as.factor(ctrt),
+                time = as.factor(time),
+                pbic = as.numeric(pbic),
+                amac = as.numeric(amac),
+                edta = as.numeric(edta),
+                unavp = as.numeric(unavp),
+                porg = as.numeric(porg),
+                ptot = as.numeric(ptot),
+                cbio = as.numeric(cbio),
+                wbio = as.numeric(wbio),
+                caco3 = as.numeric(caco3),
+                inorgcarbon = as.numeric(inorgcarbon),
+                amm = as.numeric(amm),
+                nit = as.numeric(nit),
+                pmn = as.numeric(pmn),
+                pmc = as.numeric(pmc)
+  )
+
+print(phos2)
+
+```
+
+
+stats
+
+```{r}
+
+
+aov_wbio = aov(wbio ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_wbio)  
+
+aov_cbio = aov(cbio ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_cbio)  
+
+aov_pbic = aov(pbic ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_pbic) 
+
+aov_amac = aov(amac ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_amac) 
+
+aov_porg = aov(porg ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_porg) 
+
+aov_unavp = aov(unavp ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_unavp) 
+
+aov_ptot = aov(ptot ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_ptot) 
+
+```
+
+```{r}
+
+aov_sph2 = aov(sph2 ~ ftrt*ctrt, data = phos2)
+summary.aov(aov_sph2) 
+
+aov_caco3 = aov(caco3 ~ ftrt*ctrt, data = phos2)
+summary.aov(aov_caco3) 
+
+```
+
+```{r}
+
+aov_amm = aov(amm ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_amm) 
+
+aov_nit= aov(nit ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_nit) 
+
+aov_pmc= aov(pmc ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_pmc) 
+
+aov_pmn= aov(pmn ~ ftrt*ctrt*time, data = phos2)
+summary.aov(aov_pmn) 
+
+```
+
+```{r, plot.height = 10, plot.width = 10}
+
+data_only1 = 
+  phos2 %>% 
+  filter(time %in% "1") %>% 
+  na.omit() %>% 
+  rename("wheat biomass 1" = "wbio",
+         "cover crop biomass 1" = "cbio",
+         "calcium carbonate 1" = "caco3",
+         "ph 1" = "sph2",
+         "available P 1" = "pbic",
+          "reserve P 1" = "amac",
+          "fixed P 1" = "unavp",
+          "organic P 1" = "porg",
+          "total P 1" = "ptot",
+         "ammonium 1" = "amm",
+         "nitrate 1" = "nit",
+         "pmn 1" = "pmn",
+         "pmc 1" = "pmc"
+         ) %>% 
+      dplyr::select(-rate2, -seed2, -edta, -inorgcarbon, -time) 
+
+
+data_only = 
+  phos2 %>% 
+  filter(time %in% "2") %>% 
+  rename("wheat biomass 2" = "wbio",
+         "cover crop biomass 2" = "cbio",
+         "available P 2" = "pbic",
+          "reserve P 2" = "amac",
+          "fixed P 2" = "unavp",
+          "organic P 2" = "porg",
+          "total P 2" = "ptot",
+         "ammonium 2" = "amm",
+         "nitrate 2" = "nit",
+         "pmn 2" = "pmn",
+         "pmc 2" = "pmc"
+         ) %>% 
+        dplyr::select(-rate2, -seed2, -edta, -inorgcarbon, -time, -caco3, -sph2) %>% 
+  left_join(data_only1) %>% 
+    dplyr::select(-ftrt, -ctrt) %>% 
+    na.omit() 
+
+
+
+
+correlation = cor(data_only, method = c("spearman"))
+
+correlation_r = rcorr(as.matrix(data_only))
+
+print(correlation)
+
+correlation_pvalues = correlation_r$P 
+
+
+
+print(correlation_pvalues)
+
+write.csv(correlation, "output/correlation_matrix_gh.csv")
+
+write.csv(correlation_pvalues, "output/correlation_matrix_gh_pvalues.csv")
+
+
+library(corrplot)
+	
+corrplot(correlation)
+
+
+p1 <- { # Prepare the Corrplot 
+       corrplot(correlation);
+        # Call the recordPlot() function to record the plot
+        recordPlot()
+}
+
+p1
+
+# In case if you want to save the image using ggsave
+# replayPlot basically prints the plot.
+ggsave(filename = "output/correlationgh.pdf", plot = replayPlot(p1))
+
+
+png(height=2500, width=2500, file="output/correlationgh.png", type = "cairo")
+corrplot(correlation, 
+         method = "circle",
+         is.corr = F,
+         order = "FPC",
+         tl.col="black")
+
+
+
+```
+
+Plots
+
+
+CTRT effect on wbio and pH
+```{r}
+
+
+wbio_pH_forstats = 
+  phos2 %>% 
+  dplyr::select(ctrt, sph2, wbio) %>%
+dplyr::mutate(wbiokg_ha = (wbio * 7.29)) %>%
+  dplyr::select(-wbio) 
+
+
+aov_sph2 = aov(sph2 ~ ctrt, data = wbio_pH_forstats)
+summary.aov(aov_sph2) 
+
+h_sph2 = HSD.test(aov_sph2, "ctrt")
+print(h_sph2)
+
+ph_hsd = h_sph2$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label)
+
+
+aov_wbio = aov(wbiokg_ha ~ ctrt, data = wbio_pH_forstats)
+summary.aov(aov_wbio) 
+
+h_wbio = HSD.test(aov_wbio, "ctrt")
+print(h_wbio)
+
+wbio_hsd = h_wbio$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label)
+
+
+wbio_pH_forplot =
+  phos2 %>% 
+  dplyr::select(ctrt, sph2, wbio) %>%
+dplyr::mutate(wbiokg_ha = (wbio * 7.29)) %>%
+  dplyr::select(-wbio) %>% 
+  rename("wheat biomass kg/ha" = "wbiokg_ha",
+        "soil pH"= "sph2") %>% 
+  pivot_longer(-c(ctrt), names_to = "parameter", values_to = "measurement") %>% 
+  na.omit() %>% 
+  group_by(ctrt, parameter) %>% 
+  dplyr::summarise(mean = mean(measurement),
+                   sd = sd(measurement)) 
+
+
+
+pH_stats_table =
+  phos2 %>% 
+  dplyr::select(ctrt, sph2) %>%
+  na.omit() %>% 
+  group_by(ctrt) %>% 
+  dplyr::summarise(mean = round(mean(sph2),2),
+                   sd = round(sd(sph2),2)) %>% 
+  left_join(ph_hsd) %>% 
+   mutate(summary = paste(mean, "\u00b1", sd)) %>% 
+  dplyr::select(-mean, -sd) %>%
+  mutate(pH = paste(summary, label)) %>% 
+    dplyr::select(-summary, -label) 
+
+
+wbio_stats_table =
+  phos2 %>% 
+  dplyr::select(ctrt, wbio) %>%
+  dplyr::mutate(wbiokg_ha = (wbio * 7.29)) %>%
+  dplyr::select(-wbio) %>% 
+  na.omit() %>% 
+  group_by(ctrt) %>% 
+  dplyr::summarise(mean = round(mean(wbiokg_ha),2),
+                   sd = round(sd(wbiokg_ha),2)) %>% 
+  left_join(wbio_hsd) %>% 
+   mutate(summary = paste(mean, "\u00b1", sd)) %>% 
+  dplyr::select(-mean, -sd) %>%
+  mutate(wheatbiomasskgha = paste(summary, label)) %>% 
+    dplyr::select(-summary, -label) %>% 
+  left_join(pH_stats_table)
+
+write.csv(wbio_stats_table, "output/ctrt_wbio_pH_statstable.csv")
+
+
+wbio_pH_forplot %>% 
+  ggplot()+
+  geom_col(aes(y = ctrt, x = mean)) +
+  geom_errorbar(aes(xmin=mean-sd, xmax=mean+sd, y = ctrt), width=.2)+
+  facet_wrap(~parameter, scales = "free")
+
+
+```
+
+
+CTRT*FERT effect on caco3, available P, Fixed P
+```{r}
+
+#caco3
+
+caco3_forstats = 
+  phos2 %>% 
+  dplyr::select(ctrt, ftrt, caco3) %>% 
+  na.omit()
+
+#compost--------
+
+caco3_compost = caco3_forstats %>% 
+  filter(ftrt == "Compost")
+
+aov_caco3_compost = aov(caco3 ~ ctrt, data = caco3_compost)
+summary.aov(aov_caco3_compost) 
+
+h_caco3_compost = HSD.test(aov_caco3_compost, "ctrt")
+print(h_caco3_compost)
+
+caco3_hsd_compost = h_caco3_compost$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label) %>% 
+    mutate(ftrt = "Compost")
+
+
+#control--------
+
+caco3_control = caco3_forstats %>% 
+  filter(ftrt == "Control")
+
+aov_caco3_control = aov(caco3 ~ ctrt, data = caco3_control)
+summary.aov(aov_caco3_control) 
+
+h_caco3_control = HSD.test(aov_caco3_control, "ctrt")
+print(h_caco3_control)
+
+caco3_hsd_control = h_caco3_control$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label) %>% 
+    mutate(ftrt = "Control")
+
+
+#ifert--------
+
+caco3_ifert = caco3_forstats %>% 
+  filter(ftrt == "Inorganic Fertilizer")
+
+aov_caco3_ifert = aov(caco3 ~ ctrt, data = caco3_ifert)
+summary.aov(aov_caco3_ifert) 
+
+h_caco3_ifert = HSD.test(aov_caco3_ifert, "ctrt")
+print(h_caco3_ifert)
+
+caco3_hsd_ifert = h_caco3_ifert$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label) %>% 
+  mutate(ftrt = "Inorganic Fertilizer")
+
+#combine---------
+
+caco3_hsd =
+  rbind(caco3_hsd_compost, caco3_hsd_ifert, caco3_hsd_control)
+
+
+caco3_stats_table =
+  phos2 %>% 
+  dplyr::select(ctrt, ftrt, caco3) %>%
+  na.omit() %>% 
+  group_by(ftrt, ctrt) %>% 
+  dplyr::summarise(mean = round(mean(caco3),2),
+                   sd = round(sd(caco3),2)) %>% 
+   mutate(summary = paste(mean, "\u00b1", sd)) %>% 
+  dplyr::select(-mean, -sd) %>%
+    left_join(caco3_hsd) %>% 
+  mutate(caco3 = paste(summary, label)) %>% 
+    dplyr::select(-summary, -label) 
+
+
+# available P
+
+pbic_forstats = 
+  phos2 %>% 
+  dplyr::select(ctrt, ftrt, pbic) %>% 
+  na.omit()
+
+#compost--------
+
+pbic_compost = pbic_forstats %>% 
+  filter(ftrt == "Compost")
+
+aov_pbic_compost = aov(pbic ~ ctrt, data = pbic_compost)
+summary.aov(aov_pbic_compost) 
+
+h_pbic_compost = HSD.test(aov_pbic_compost, "ctrt")
+print(h_pbic_compost)
+
+pbic_hsd_compost = h_pbic_compost$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label) %>% 
+    mutate(ftrt = "Compost")
+
+
+#control--------
+
+pbic_control = pbic_forstats %>% 
+  filter(ftrt == "Control")
+
+aov_pbic_control = aov(pbic ~ ctrt, data = pbic_control)
+summary.aov(aov_pbic_control) 
+
+h_pbic_control = HSD.test(aov_pbic_control, "ctrt")
+print(h_pbic_control)
+
+pbic_hsd_control = h_pbic_control$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label) %>% 
+    mutate(ftrt = "Control")
+
+
+#ifert--------
+
+pbic_ifert = pbic_forstats %>% 
+  filter(ftrt == "Inorganic Fertilizer")
+
+aov_pbic_ifert = aov(pbic ~ ctrt, data = pbic_ifert)
+summary.aov(aov_pbic_ifert) 
+
+h_pbic_ifert = HSD.test(aov_pbic_ifert, "ctrt")
+print(h_pbic_ifert)
+
+pbic_hsd_ifert = h_pbic_ifert$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label) %>% 
+  mutate(ftrt = "Inorganic Fertilizer")
+
+#combine---------
+
+pbic_hsd =
+  rbind(pbic_hsd_compost, pbic_hsd_ifert, pbic_hsd_control)
+
+
+availableP_stats_table =
+  phos2 %>% 
+  dplyr::select(ctrt, ftrt, pbic) %>%
+  na.omit() %>% 
+  group_by(ftrt, ctrt) %>% 
+  dplyr::summarise(mean = round(mean(pbic),2),
+                   sd = round(sd(pbic),2)) %>% 
+   mutate(summary = paste(mean, "\u00b1", sd)) %>% 
+  dplyr::select(-mean, -sd) %>%
+    left_join(pbic_hsd) %>% 
+  mutate(pbic = paste(summary, label)) %>% 
+    dplyr::select(-summary, -label) 
+
+
+#fixed p--------
+
+unavp_forstats = 
+  phos2 %>% 
+  dplyr::select(ctrt, ftrt, unavp) %>% 
+  na.omit()
+
+#compost--------
+
+unavp_compost = unavp_forstats %>% 
+  filter(ftrt == "Compost")
+
+aov_unavp_compost = aov(unavp ~ ctrt, data = unavp_compost)
+summary.aov(aov_unavp_compost) 
+
+h_unavp_compost = HSD.test(aov_unavp_compost, "ctrt")
+print(h_unavp_compost)
+
+unavp_hsd_compost = h_unavp_compost$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label) %>% 
+    mutate(ftrt = "Compost")
+
+
+#control--------
+
+unavp_control = unavp_forstats %>% 
+  filter(ftrt == "Control")
+
+aov_unavp_control = aov(unavp ~ ctrt, data = unavp_control)
+summary.aov(aov_unavp_control) 
+
+h_unavp_control = HSD.test(aov_unavp_control, "ctrt")
+print(h_unavp_control)
+
+unavp_hsd_control = h_unavp_control$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label) %>% 
+    mutate(ftrt = "Control")
+
+
+#ifert--------
+
+unavp_ifert = unavp_forstats %>% 
+  filter(ftrt == "Inorganic Fertilizer")
+
+aov_unavp_ifert = aov(unavp ~ ctrt, data = unavp_ifert)
+summary.aov(aov_unavp_ifert) 
+
+h_unavp_ifert = HSD.test(aov_unavp_ifert, "ctrt")
+print(h_unavp_ifert)
+
+unavp_hsd_ifert = h_unavp_ifert$groups %>% 
+  mutate(ctrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ctrt, label) %>% 
+  mutate(ftrt = "Inorganic Fertilizer")
+
+#combine---------
+
+unavp_hsd =
+  rbind(unavp_hsd_compost, unavp_hsd_ifert, unavp_hsd_control)
+
+
+
+fixedP_stats_table =
+  phos2 %>% 
+  dplyr::select(ctrt, ftrt, unavp) %>%
+  na.omit() %>% 
+  group_by(ftrt, ctrt) %>% 
+  dplyr::summarise(mean = round(mean(unavp),2),
+                   sd = round(sd(unavp),2)) %>% 
+   mutate(summary = paste(mean, "\u00b1", sd)) %>% 
+  dplyr::select(-mean, -sd) %>%
+    left_join(unavp_hsd) %>% 
+  mutate(unavp = paste(summary, label)) %>% 
+    dplyr::select(-summary, -label) 
+
+
+
+
+
+
+
+#combine all-----------
+
+caco3_availablep_fixedp_stats_table =
+  caco3_stats_table %>% 
+  left_join(availableP_stats_table, by = c("ctrt", "ftrt")) %>% 
+    left_join(fixedP_stats_table, by = c("ctrt", "ftrt"))
+
+
+write.csv(caco3_availablep_fixedp_stats_table, "output/caco3_availablep_fixedp_stats_table.csv")
+
+
+
+
+```
+
+
+
+
+fertility effects on wheat biomass and total phosphorus
+
+```{r}
+
+
+wbio_ptot_forstats = 
+  phos2 %>% 
+  dplyr::select(ftrt, wbio, ptot) %>%
+dplyr::mutate(wbiokg_ha = (wbio * 7.29)) 
+
+
+aov_ptot = aov(ptot ~ ftrt, data = wbio_ptot_forstats)
+summary.aov(aov_ptot) 
+
+h_ptot = HSD.test(aov_ptot, "ftrt")
+print(h_ptot)
+
+ptot_hsd = h_ptot$groups %>% 
+  mutate(ftrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ftrt, label)
+
+
+aov_wbio = aov(wbio ~ ftrt, data = wbio_ptot_forstats)
+summary.aov(aov_wbio) 
+
+h_wbio = HSD.test(aov_wbio, "ftrt")
+print(h_wbio)
+
+wbio_hsd = h_wbio$groups %>% 
+  mutate(ftrt = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(ftrt, label)
+
+
+
+ptot_stats_table =
+  phos2 %>% 
+  dplyr::select(ftrt, ptot) %>%
+  na.omit() %>% 
+  group_by(ftrt) %>% 
+  dplyr::summarise(mean = round(mean(ptot),2),
+                   sd = round(sd(ptot),2)) %>% 
+  left_join(ptot_hsd) %>% 
+   mutate(summary = paste(mean, "\u00b1", sd)) %>% 
+  dplyr::select(-mean, -sd) %>%
+  mutate(totalP = paste(summary, label)) %>% 
+    dplyr::select(-summary, -label) 
+
+
+ptot_wbio_stats_table =
+  phos2 %>% 
+  dplyr::select(ftrt, wbio) %>%
+  dplyr::mutate(wbiokg_ha = (wbio * 7.29)) %>%
+  dplyr::select(-wbio) %>% 
+  na.omit() %>% 
+  group_by(ftrt) %>% 
+  dplyr::summarise(mean = round(mean(wbiokg_ha),2),
+                   sd = round(sd(wbiokg_ha),2)) %>% 
+  left_join(wbio_hsd) %>% 
+   mutate(summary = paste(mean, "\u00b1", sd)) %>% 
+  dplyr::select(-mean, -sd) %>%
+  mutate(wheatbiomasskgha = paste(summary, label)) %>% 
+    dplyr::select(-summary, -label) %>% 
+  left_join(ptot_stats_table)
+
+write.csv(ptot_wbio_stats_table, "output/ftrt_wbio_ptot_statstable.csv")
+
+
+
+```
+Interaction of Time and Fertility
+on Available P
+```{r}
+
+pbic_forstats = 
+  phos2 %>% 
+  dplyr::select(time, ftrt, pbic) %>% 
+  na.omit()
+
+#compost--------
+
+pbic_compost = pbic_forstats %>% 
+  filter(ftrt == "Compost")
+
+aov_pbic_compost = aov(pbic ~ time, data = pbic_compost)
+summary.aov(aov_pbic_compost) 
+
+h_pbic_compost = HSD.test(aov_pbic_compost, "time")
+print(h_pbic_compost)
+
+pbic_hsd_compost = h_pbic_compost$groups %>% 
+  mutate(time = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(time, label) %>% 
+    mutate(ftrt = "Compost")
+
+
+#control--------
+
+pbic_control = pbic_forstats %>% 
+  filter(ftrt == "Control")
+
+aov_pbic_control = aov(pbic ~ time, data = pbic_control)
+summary.aov(aov_pbic_control) 
+
+h_pbic_control = HSD.test(aov_pbic_control, "time")
+print(h_pbic_control)
+
+pbic_hsd_control = h_pbic_control$groups %>% 
+  mutate(time = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(time, label) %>% 
+    mutate(ftrt = "Control")
+
+
+#ifert--------
+
+pbic_ifert = pbic_forstats %>% 
+  filter(ftrt == "Inorganic Fertilizer")
+
+aov_pbic_ifert = aov(pbic ~ time, data = pbic_ifert)
+summary.aov(aov_pbic_ifert) 
+
+h_pbic_ifert = HSD.test(aov_pbic_ifert, "time")
+print(h_pbic_ifert)
+
+pbic_hsd_ifert = h_pbic_ifert$groups %>% 
+  mutate(time = row.names(.)) %>% 
+  rename(label = groups) %>%  
+    dplyr::select(time, label) %>% 
+  mutate(ftrt = "Inorganic Fertilizer")
+
+#combine---------
+
+pbic_hsd =
+  rbind(pbic_hsd_compost, pbic_hsd_ifert, pbic_hsd_control)
+
+
+ftrt_time_availableP_stats_table =
+  phos2 %>% 
+  dplyr::select(time, ftrt, pbic) %>%
+  na.omit() %>% 
+  group_by(ftrt, time) %>% 
+  dplyr::summarise(mean = round(mean(pbic),2),
+                   sd = round(sd(pbic),2)) %>% 
+   mutate(summary = paste(mean, "\u00b1", sd)) %>% 
+  dplyr::select(-mean, -sd) %>%
+    left_join(pbic_hsd) %>% 
+  mutate(pbic = paste(summary, label)) %>% 
+    dplyr::select(-summary, -label) 
+
+
+
+write.csv(ftrt_time_availableP_stats_table, "output/ftrt_time_availableP_stats_table.csv")
+
+
+
+
+```
+

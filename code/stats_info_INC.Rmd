@@ -1,0 +1,164 @@
+---
+title: "stats_info_inc"
+author: "Erin C Rooney"
+date: "2023-04-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE,message=FALSE,error=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+source("code/0-packages.R")
+
+```
+
+load incubation data
+
+```{r}
+
+incub_dat = read.csv("raw/Inc_finaldata_July2.csv")
+
+```
+
+clean data
+
+```{r}
+incub_clean = 
+  incub_dat %>% 
+  mutate(swet = as.numeric(swet),
+         amac = as.numeric(amac),
+         unavp = as.numeric(unavp),
+         ftrt = as.factor(ftrt),
+        ctrt = as.factor(ctrt),
+        time = as.factor(time)) 
+  
+```
+cumulative sums
+```{r}
+incub_t0_1 =
+  incub_clean %>% 
+  filter(time == "Baseline") %>% 
+  mutate(replicate = "1")
+
+incub_t0_2 =
+  incub_clean %>% 
+  filter(time == "Baseline") %>% 
+  mutate(replicate = "2")
+
+incub_t0_3 =
+  incub_clean %>% 
+  filter(time == "Baseline") %>% 
+  mutate(replicate = "3")
+
+incub_t0 =
+  rbind(incub_t0_1, incub_t0_2, incub_t0_3)
+
+incub_not0 =
+  incub_clean %>% 
+  filter(time != "Baseline") %>% 
+  mutate(replicate = rep(c(1,2,3),times=36))
+
+incub_all =
+  rbind(incub_t0, incub_not0) %>% 
+  group_by(ctrt, ftrt, replicate) %>% 
+  na.omit() %>% 
+  dplyr::summarise(cbio = cbio,
+                  available_p_cumsum = sum(pbic),
+                    reserve_p_cumsum = sum(amac),
+                   fixed_p_cumsum = sum(unavp),
+                   organic_p_cumsum = sum(porg),
+                   total_p_cumsum = sum(ptot),
+                   bg_cumsum = sum(bg),
+                   phos_cumsum = sum(phos),
+                   nag_cumsum = sum(nag),
+                   ag_cumsum = sum(ag),
+                   lap_cumsum = sum(lap),
+                   abts_cumsum = sum(abts)
+                  )
+
+
+```
+
+
+stats
+
+```{r}
+
+aov_cbio = aov(cbio ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_cbio)  
+
+aov_pbic = aov(available_p_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_pbic) 
+
+aov_amac = aov(reserve_p_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_amac) 
+
+aov_porg = aov(organic_p_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_porg) 
+
+aov_unavp = aov(fixed_p_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_unavp) 
+
+aov_ptot = aov(total_p_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_ptot) 
+
+
+
+```
+
+```{r}
+
+aov_bg = aov(bg_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_bg) 
+
+aov_phos = aov(phos_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_phos) 
+
+aov_nag = aov(nag_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_nag) 
+
+aov_ag = aov(ag_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_ag) 
+
+aov_lap = aov(lap_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_lap) 
+
+aov_abts = aov(abts_cumsum ~ ftrt*ctrt, data = incub_all)
+summary.aov(aov_abts) 
+```
+
+```{r}
+
+
+data_only_inc = 
+  incub_all %>% 
+  ungroup() %>% 
+  dplyr::select(-ftrt, -ctrt, -replicate) 
+
+correlation_inc = cor(data_only_inc, method = c("spearman"))
+
+correlation_r_inc = rcorr(as.matrix(data_only_inc))
+
+print(correlation_inc)
+
+correlation_pvalues_inc = correlation_r_inc$P
+
+print(correlation_pvalues_inc)
+
+write.csv(correlation_inc, "output/correlation_matrix_inc.csv")
+
+write.csv(correlation_pvalues_inc, "output/correlation_matrix_inc_pvalues.csv")
+
+
+library(corrplot)
+	
+corrplot(correlation_inc)
+#corrplot(correlation_pvalues)
+
+
+```
+
