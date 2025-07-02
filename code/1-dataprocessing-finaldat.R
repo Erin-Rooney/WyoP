@@ -7,10 +7,10 @@ source("code/0-packages.R")
 
 #load raw data--------------
 incub_dat = read.csv("raw/Inc_finaldata_July2.csv")
-bio_dat = read.csv("raw/biocorr_1.csv") %>%  rename('ctrt' = 'ï..ctrt')
+bio_dat = read.csv("raw/biocorr_1.csv") #%>%  rename('ctrt' = 'ï..ctrt')
 bio_dat_longer = read.csv("raw/allfert_allcrop_P.csv") 
 final_dat = read.csv("raw/2021_7_1_finaldat.csv")
-gh_dat = read.csv("raw/gh_pfrac.csv") %>%  rename('ctrt' = 'ï..ctrt')
+gh_dat = read.csv("raw/gh_pfrac.csv") #%>%  rename('ctrt' = 'ï..ctrt')
 
 #data processing
 
@@ -875,6 +875,7 @@ summary.aov(cbio2_aov)
 
 cbio2_hsd <- HSD.test(cbio2_aov, "ftrt")
 print(cbio2_hsd)
+
 
 
 

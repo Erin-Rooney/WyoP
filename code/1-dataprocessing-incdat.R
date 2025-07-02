@@ -145,6 +145,66 @@ fallow_enzymes =
   theme_er()+
   theme(legend.position = "bottom")
 
+ggsave("output/phos_fig_time.tiff", plot = phos_fig_time, height = 4.6, width = 5.9)
+ggsave("output/phos_fig_time_fallow.tiff", plot = fallow_enzymes, height = 4.5, width = 4)
+
+
+
+phos_fig_time =
+  incub_dat_enzymeslonger_forfig_cumsum %>% 
+  #filter(time != "0") %>%
+  ggplot() +
+  geom_point(aes(x = time, y = mean, color = ftrt, group = ftrt), size = 1.25) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd, x = time, color = ftrt), width=.2)+
+  geom_line(aes(x = time, y = mean, color = ftrt, group = ftrt), size = 1.25) +
+  labs(x = "weeks", y = "Acid phosphatase activity (nmol/h/g soil)")+
+  scale_color_manual(values = c("#59629b","#e69b99"))+
+  facet_wrap(ctrt~.)+
+  theme_er()+
+  theme(legend.position = "bottom")
+
+#ggplot in manuscript
+#acid phosphatase for fallow only 
+#cumulative sum
+
+fallow_enzymes =
+  incub_dat_enzymeslonger_control_summarised %>% 
+  # mutate(ctrt = factor(ctrt, levels = c("Control", "All Mixture", "Faba", "Faba Oat", "Oat", "Radish")))   %>%
+  mutate(ctrt = recode(ctrt, "Control" = "Control (Fallow)")) %>% 
+  # filter(time != "0") %>%
+  ggplot() +
+  geom_point(aes(x = time, y = mean, color = ftrt, group = ftrt), size = 1.25) +
+  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd, x = time, color = ftrt), width=.2)+
+  geom_line(aes(x = time, y = mean, color = ftrt, group = ftrt), size = 1.25) +
+  labs(x = "weeks", y = "Acid phosphatase activity (nmol/h/g soil)")+
+  scale_color_manual(values = c("#59629b","#e69b99"))+
+  facet_wrap(ctrt~., scales = "free_y")+
+  theme_er()+
+  theme(legend.position = "bottom")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #Not in manuscript
 #acid phosphatase for ctrt (no fallow)
 #not cumulative sum
@@ -162,8 +222,7 @@ incub_dat_enzymeslonger_forfig %>%
 
 
 #ggsave for manuscript figures
-ggsave("output/phos_fig_time.tiff", plot = phos_fig_time, height = 4.6, width = 5.9)
-ggsave("output/phos_fig_time_fallow.tiff", plot = fallow_enzymes, height = 4.5, width = 4)
+
 
 
 # phos_ftrt_fallow_fig =
